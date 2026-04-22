@@ -23,12 +23,33 @@ body {
   position: relative;
   padding: 40px 60px;
 }
-#lightning {
+#pace-indicator {
   position: absolute;
   top: 20px;
   right: 40px;
   font-size: 48px;
   opacity: 0.9;
+  display: none;
+}
+#countdown-overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+#countdown-overlay .countdown-label {
+  font-size: 3vw;
+  color: #FFD700;
+  margin-bottom: 40px;
+}
+#countdown-overlay .countdown-number {
+  font-size: 12vw;
+  color: #fff;
+  font-weight: bold;
 }
 .verse-line {
   font-size: 2.2vw;
@@ -109,12 +130,20 @@ body {
   min-width: 50px;
   text-align: center;
 }
+#btn-speedup.active, #btn-slowdown.active {
+  background: #c94;
+  color: #000;
+}
 </style>
 </head>
 <body>
 
 <div id="display">
-  <div id="lightning">&#9889;</div>
+  <div id="pace-indicator"></div>
+  <div id="countdown-overlay">
+    <div class="countdown-label">Listen to Sruti</div>
+    <div class="countdown-number">5</div>
+  </div>
   <div id="pointer" style="display:none">&#128071;</div>
   <div id="verse-container-a"></div>
   <div id="verse-container-b" style="display:none"></div>
@@ -157,6 +186,12 @@ body {
   <button class="mode-btn selected" data-mode="asterisk">Asterisk</button>
   <button class="mode-btn" data-mode="iast">IAST</button>
   <button class="mode-btn" data-mode="devanagari">Devanagari</button>
+  <div class="separator"></div>
+  <button id="btn-speedup" title="Speed Up signal">&#9889;</button>
+  <button id="btn-slowdown" title="Slow Down signal">&#9995;</button>
+  <button id="btn-clear-pace" title="Clear pace indicator">&#10006;</button>
+  <div class="separator"></div>
+  <button id="btn-project" title="Open projector window">&#128250; Project</button>
 </div>
 
 <script>
@@ -1080,9 +1115,54 @@ const ui = (function() {
     }
   }
 
-  function bindControls() {
-    document.getElementById('btn-play').addEventListener('click', function() {
+  function playWithCountdown() {
+    if (currentPage === 0 && animator.getState().currentIndex < 0) {
+      startCountdown(function() { animator.play(); });
+    } else {
       animator.play();
+    }
+  }
+
+  function startCountdown(callback) {
+    var countdownOverlay = document.getElementById('countdown-overlay');
+    var countdownNumber = countdownOverlay.querySelector('.countdown-number');
+    countdownOverlay.style.display = 'flex';
+    broadcastState();
+    var count = 5;
+    countdownNumber.textContent = count;
+    var interval = setInterval(function() {
+      count--;
+      if (count <= 0) {
+        clearInterval(interval);
+        countdownOverlay.style.display = 'none';
+        broadcastState();
+        if (callback) callback();
+      } else {
+        countdownNumber.textContent = count;
+        broadcastState();
+      }
+    }, 1000);
+  }
+
+  // --- Projector sync via BroadcastChannel ---
+  var projectorChannel = new BroadcastChannel('gita-projector');
+
+  function broadcastState() {
+    var displayEl = document.getElementById('display');
+    projectorChannel.postMessage({
+      type: 'sync',
+      html: displayEl.innerHTML
+    });
+  }
+
+  // Broadcast on any DOM change in #display
+  var displayObserver = new MutationObserver(function() { broadcastState(); });
+
+  function bindControls() {
+    displayObserver.observe(document.getElementById('display'), { childList: true, subtree: true, attributes: true, characterData: true });
+
+    document.getElementById('btn-play').addEventListener('click', function() {
+      playWithCountdown();
     });
     document.getElementById('btn-pause').addEventListener('click', function() {
       animator.pause();
@@ -1139,7 +1219,7 @@ const ui = (function() {
         if (state.isPlaying) {
           animator.pause();
         } else {
-          animator.play();
+          playWithCountdown();
         }
       } else if (e.code === 'ArrowRight') {
         nextPage();
@@ -1148,6 +1228,42 @@ const ui = (function() {
       } else if (e.code === 'KeyR') {
         animator.reset();
       }
+    });
+
+    // --- Issue #2: Pace indicators (speed up / slow down) ---
+    var paceIndicator = document.getElementById('pace-indicator');
+    var btnSpeedup = document.getElementById('btn-speedup');
+    var btnSlowdown = document.getElementById('btn-slowdown');
+    var btnClearPace = document.getElementById('btn-clear-pace');
+
+    function setPace(mode) {
+      btnSpeedup.classList.remove('active');
+      btnSlowdown.classList.remove('active');
+      if (mode === 'speedup') {
+        paceIndicator.textContent = '\u26A1';
+        paceIndicator.style.display = 'block';
+        btnSpeedup.classList.add('active');
+      } else if (mode === 'slowdown') {
+        paceIndicator.textContent = '\u270B';
+        paceIndicator.style.display = 'block';
+        btnSlowdown.classList.add('active');
+      } else {
+        paceIndicator.style.display = 'none';
+      }
+      broadcastState();
+    }
+
+    btnSpeedup.addEventListener('click', function() {
+      setPace(btnSpeedup.classList.contains('active') ? 'none' : 'speedup');
+    });
+    btnSlowdown.addEventListener('click', function() {
+      setPace(btnSlowdown.classList.contains('active') ? 'none' : 'slowdown');
+    });
+    btnClearPace.addEventListener('click', function() { setPace('none'); });
+
+    // --- Projector window ---
+    document.getElementById('btn-project').addEventListener('click', function() {
+      window.open('projector.html', 'gita-projector', 'width=1280,height=720');
     });
   }
 
