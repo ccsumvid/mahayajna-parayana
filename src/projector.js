@@ -21,6 +21,10 @@
         applySyllableUpdate(pendingUpdates[i]);
       }
       pendingUpdates = [];
+    }).catch(function(err) {
+      console.error('[projector] render-page fetch failed:', err);
+      pageReady = true; // unblock so future updates aren't stuck
+      pendingUpdates = [];
     });
   });
 
@@ -28,32 +32,50 @@
   var pointer = document.getElementById('pointer');
   var lastPointerLine = -1; // track which line the pointer is on for line-change detection
 
-  function positionPointerAbove(el) {
+  function positionPointerAbove(el, beatMs, durationMs) {
     var rect = el.getBoundingClientRect();
-    var newLeft = (rect.left + rect.width / 2 - 18) + 'px';
     var newTop = (rect.top - 40) + 'px';
+    var isEnglish = renderer.getMode() === 'english';
 
-    if (pointer.style.display === 'none') {
-      // First syllable — snap instantly, no transition
+    if (isEnglish && durationMs) {
+      // English mode: snap to left edge of element, then sweep to right over the line duration
+      var startLeft = (rect.left - 18) + 'px';
+      var endLeft = (rect.right - 18) + 'px';
+      var topChanged = Math.abs(rect.top - lastPointerLine) > 10;
       pointer.style.transition = 'none';
-      pointer.style.left = newLeft;
+      pointer.style.left = startLeft;
       pointer.style.top = newTop;
       pointer.style.display = 'block';
       pointer.offsetWidth; // force reflow
-      pointer.style.transition = '';
-      lastPointerLine = rect.top;
-    } else if (Math.abs(rect.top - lastPointerLine) > 10) {
-      // Line changed — snap vertically, glide horizontally
-      pointer.style.transition = 'none';
-      pointer.style.top = newTop;
-      pointer.offsetWidth;
-      pointer.style.transition = '';
-      pointer.style.left = newLeft;
+      pointer.style.transition = 'left ' + (durationMs / 1000) + 's linear, top 0.15s ease-out';
+      pointer.style.left = endLeft;
       lastPointerLine = rect.top;
     } else {
-      // Same line — smooth glide
-      pointer.style.left = newLeft;
-      pointer.style.top = newTop;
+      // Asterisk mode: glide from current toward next syllable
+      var newLeft = (rect.left + rect.width / 2 - 18) + 'px';
+      var transMs = beatMs || 150;
+      var transition = 'left ' + (transMs / 1000) + 's linear, top 0.15s ease-out';
+
+      if (pointer.style.display === 'none') {
+        pointer.style.transition = 'none';
+        pointer.style.left = newLeft;
+        pointer.style.top = newTop;
+        pointer.style.display = 'block';
+        pointer.offsetWidth;
+        pointer.style.transition = transition;
+        lastPointerLine = rect.top;
+      } else if (Math.abs(rect.top - lastPointerLine) > 10) {
+        pointer.style.transition = 'none';
+        pointer.style.top = newTop;
+        pointer.offsetWidth;
+        pointer.style.transition = transition;
+        pointer.style.left = newLeft;
+        lastPointerLine = rect.top;
+      } else {
+        pointer.style.transition = transition;
+        pointer.style.left = newLeft;
+        pointer.style.top = newTop;
+      }
     }
   }
 
@@ -68,7 +90,7 @@
     if (data.index >= 0 && data.index < elems.length) {
       if (data.state === 'active') {
         elems[data.index].classList.add('active');
-        positionPointerAbove(elems[data.index]);
+        positionPointerAbove(elems[data.index], data.beatMs, data.durationMs);
       } else if (data.state === 'done') {
         elems[data.index].classList.remove('active');
         elems[data.index].classList.add('done');
@@ -109,6 +131,7 @@
   // display-mode: switch asterisk/english
   window.electronAPI.on('display-mode', function(data) {
     renderer.setMode(data.mode);
+    hidePointer(); // reset pointer state so next active syllable snaps cleanly
   });
 
   // spm-change: pace indicator watermark

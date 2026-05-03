@@ -191,7 +191,11 @@
 
   // --- Hook into animator to send syllable updates to projector ---
   animator.setOnSyllableChange(function(index, state) {
-    sendToProjector('syllable-update', { index: index, state: state });
+    var beatMs = Math.round(60000 / animator.getState().bpm);
+    var elems = renderer.getSyllableElements();
+    var el = elems[index];
+    var beats = el ? (parseInt(el.dataset.beats, 10) || 1) : 1;
+    sendToProjector('syllable-update', { index: index, state: state, beatMs: beatMs, durationMs: beats * beatMs });
   });
 
   // --- Auto-advance: when animator reaches end of page, go to next and resume ---
@@ -256,6 +260,15 @@
       renderer.setMode(currentDisplayMode);
       animator.restore(state);
       sendToProjector('display-mode', { mode: currentDisplayMode });
+      // Re-announce the active syllable so the projector pointer snaps to the right position
+      var restoredState = animator.getState();
+      if (restoredState.currentIndex >= 0) {
+        var reBeatMs = Math.round(60000 / restoredState.bpm);
+        var reElems = renderer.getSyllableElements();
+        var reEl = reElems[restoredState.currentIndex];
+        var reBeats = reEl ? (parseInt(reEl.dataset.beats, 10) || 1) : 1;
+        sendToProjector('syllable-update', { index: restoredState.currentIndex, state: 'active', beatMs: reBeatMs, durationMs: reBeats * reBeatMs });
+      }
     });
   });
 
