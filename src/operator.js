@@ -198,6 +198,12 @@
 
     await nextPage();
 
+    // Stop auto-play at header pages — let operator navigate manually
+    var newPage = dataLayer.getPage(currentPage);
+    if (newPage && newPage.isHeader) {
+      return;
+    }
+
     if (isShloka) {
       completedShlokaCount++;
       if (completedShlokaCount === 2) {
