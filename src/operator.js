@@ -298,6 +298,14 @@
   document.getElementById('btn-clear-pace').addEventListener('click', function() { setPace('none'); });
 
   // Instruction dropdown
+  var instructionShowing = false;
+
+  function dismissInstruction() {
+    sendToProjector('dismiss-instruction');
+    instructionShowing = false;
+    document.getElementById('instruction-select').value = '';
+  }
+
   document.getElementById('instruction-select').addEventListener('change', function() {
     var key = this.value;
     if (!key) return;
@@ -306,16 +314,10 @@
       sendToProjector('show-instruction', data);
       instructionShowing = true;
     }
-    this.value = '';
   });
 
-  // Dismiss instruction on click anywhere in operator (convenient)
-  var instructionShowing = false;
-  document.addEventListener('click', function(e) {
-    if (instructionShowing && e.target.id !== 'instruction-select') {
-      sendToProjector('dismiss-instruction');
-      instructionShowing = false;
-    }
+  document.getElementById('btn-dismiss-instruction').addEventListener('click', function() {
+    dismissInstruction();
   });
 
   // Projector button
@@ -365,8 +367,7 @@
       updateSpmDisplay();
     } else if (e.code === 'Escape') {
       if (instructionShowing) {
-        sendToProjector('dismiss-instruction');
-        instructionShowing = false;
+        dismissInstruction();
       }
     }
   });

@@ -118,6 +118,11 @@ input[type="number"] { width: 70px; text-align: center; }
 
 #btn-clear-pace { flex: 0 0 auto; }
 
+/* Instruction row */
+.instruction-row { display: flex; gap: 6px; align-items: center; }
+.instruction-row select { flex: 1; }
+#btn-dismiss-instruction { flex: 0 0 auto; }
+
 /* Projector button */
 .projector-btn { width: 100%; background: #1a3a5c; border-color: #2a5a8c; color: #7ab8f5; font-size: 16px; padding: 12px; }
 .projector-btn:hover { background: #2a5a8c; }
@@ -213,19 +218,22 @@ hr { border: none; border-top: 1px solid #333; margin: 0; }
 
 <!-- Instructions -->
 <div class="section-label">Instructions</div>
-<select id="instruction-select">
-  <option value="">— Show Instruction —</option>
-  <option value="sitting_placement">Sitting Placement</option>
-  <option value="starting_soon">Parayana Starting Soon</option>
-  <option value="stop">Stop</option>
-  <option value="listen_sync">Listen &amp; Sync with Pace Helpers</option>
-  <option value="folded_hands">Folded Hands</option>
-  <option value="pranam">Pranām</option>
-  <option value="sit_straight">Sit Straight</option>
-  <option value="increase_sruti">Increase Sruti</option>
-  <option value="decrease_sruti">Decrease Sruti</option>
-  <option value="good_job">Good Job</option>
-</select>
+<div class="instruction-row">
+  <select id="instruction-select">
+    <option value="">— Show Instruction —</option>
+    <option value="sitting_placement">Sitting Placement</option>
+    <option value="starting_soon">Parayana Starting Soon</option>
+    <option value="stop">Stop</option>
+    <option value="listen_sync">Listen &amp; Sync with Pace Helpers</option>
+    <option value="folded_hands">Folded Hands</option>
+    <option value="pranam">Pranām</option>
+    <option value="sit_straight">Sit Straight</option>
+    <option value="increase_sruti">Increase Sruti</option>
+    <option value="decrease_sruti">Decrease Sruti</option>
+    <option value="good_job">Good Job</option>
+  </select>
+  <button id="btn-dismiss-instruction" title="Dismiss instruction">&#10006;</button>
+</div>
 
 <hr>
 
