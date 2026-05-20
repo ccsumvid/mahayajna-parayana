@@ -211,7 +211,6 @@
         // After intro + 2 shlokas, automatically show folded hands
         sendToProjector('show-instruction', INSTRUCTION_DATA['folded_hands']);
         instructionShowing = true;
-        return; // operator resumes playback after dismissing
       }
     }
 
