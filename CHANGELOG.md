@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0] - 2026-06-02
+
+### Added
+- Sarvadharman shloka (BG 18.66 "sarvadharmān parityajya…") now appears at the end of all 18 chapters before the closing colophon
+- Instruction overlay is now a compact top-right corner popup — verse display remains fully visible while instructions are shown
+
+### Changed
+- Asterisk mode now hides all text including chapter headers and intro lines — full asterisk-only display throughout
+- English mode: long-chandas verses (entries >40 IAST chars) split into two display lines per pada, matching traditional book layout (8 lines for Vasantatilaka/Sragdhara, 4 lines for Anushtubh)
+- Automatic folded-hands instruction after the 2nd shloka removed — all shlokas now play uninterrupted
+- Updated "Increase Sruti" instruction image to a clearer visual guide
+- Split lines use tighter spacing (0.25em) within a pada pair vs full spacing between separate padas
+
 ## [0.7.1] - 2026-05-21
 
 ### Fixed
