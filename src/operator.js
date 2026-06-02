@@ -27,7 +27,7 @@
     folded_hands:      { image: '../img/instructions/folded-hands.png' },
     pranam:            { text: 'Pran\u0101m', image: '../img/instructions/image7.gif' },
     sit_straight:      { text: 'Sit Straight', image: '../img/instructions/image3.gif' },
-    increase_sruti:    { image: '../img/instructions/image4.jpeg', image2: '../img/instructions/image5.gif', arrow: 'up' },
+    increase_sruti:    { image: '../img/instructions/shruti-increase.png' },
     listen_sync:       { text: 'Listen and Sync\nwith Pace Helpers' },
     good_job:          { image: '../img/instructions/image6.gif' },
     decrease_sruti:    { image: '../img/instructions/image4.jpeg', image2: '../img/instructions/image5.gif', arrow: 'down' },
