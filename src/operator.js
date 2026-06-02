@@ -78,7 +78,6 @@
       renderer.invalidatePrefetch();
       await dataLayer.fetchChapter(chapterId);
       populateShlokaDropdown();
-      completedShlokaCount = 0;
       currentPage = 0;
       showPage(0);
       chapterSelect.value = String(chapterId);
@@ -124,10 +123,7 @@
   }
 
   // --- Restart Chapter ---
-  var completedShlokaCount = 0;
-
   function restartChapter() {
-    completedShlokaCount = 0;
     showPage(0);
   }
 
@@ -193,9 +189,6 @@
 
   // --- Auto-advance: when animator reaches end of page, go to next and resume ---
   animator.setOnAutoAdvance(async function() {
-    var completedPage = dataLayer.getPage(currentPage);
-    var isShloka = completedPage && !completedPage.isHeader && completedPage.shlokaNum && completedPage.shlokaNum !== '';
-
     await nextPage();
 
     // Pause briefly on header pages so they're visible before auto-advancing
@@ -203,15 +196,6 @@
     if (newPage && newPage.isHeader) {
       setTimeout(function() { animator.play(); }, 3000);
       return;
-    }
-
-    if (isShloka) {
-      completedShlokaCount++;
-      if (completedShlokaCount === 2) {
-        // After intro + 2 shlokas, automatically show folded hands
-        sendToProjector('show-instruction', INSTRUCTION_DATA['folded_hands']);
-        instructionShowing = true;
-      }
     }
 
     animator.play();
