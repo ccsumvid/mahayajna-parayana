@@ -714,7 +714,9 @@ const renderer = (function() {
         const tokens = analyzer.analyzeLine(analyzeText);
         const totalBeats = tokens.reduce((sum, t) => sum + t.beats, 0);
 
-        if (displayText.length > 40) {
+        // Split long-chandas padas (Trishtubh=11, Jagatī=12+) but not Anushtubh (8 syllables)
+        const syllableCount = tokens.filter(t => !t.isMarker).length;
+        if (syllableCount > 9) {
           // Split at the space nearest to the midpoint for long lines
           const mid = Math.floor(displayText.length / 2);
           let splitIdx = displayText.lastIndexOf(' ', mid);
