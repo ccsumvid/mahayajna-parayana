@@ -512,7 +512,7 @@ const dataLayer = (function() {
 
   // Ordered list of all chapter IDs
   const CHAPTER_ORDER = [
-    'datta_stavam', '0',
+    'datta_stavam', 'invocation_prayers', '0',
     '1','2','3','4','5','6','7','8','9',
     '10','11','12','13','14','15','16','17','18',
     'gita_mahatmyam', 'kshama_prarthana', 'gita_saram', 'gita_arati', 'sadguru_stavam'
