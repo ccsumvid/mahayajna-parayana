@@ -2778,6 +2778,88 @@
       ]
     },
     {
+      "shlokaNum": "66",
+      "entry": [
+        {
+          "startTime": "4978.39",
+          "endTime": "4983.5",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "सर्वधर्मान्परित्यज्य",
+          "iast": "sarvadharmānparityajya"
+        },
+        {
+          "startTime": "4989.94",
+          "endTime": "4993.71",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "मामेकं  शरणं  व्रज |",
+          "iast": "māmēkaṃ  śaraṇaṃ  vraja |"
+        },
+        {
+          "startTime": "4998.9",
+          "endTime": "5004.39",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "अहं  त्वा  सर्वपापेभ्यः",
+          "iast": "ahaṃ  tvā  sarvapāpēbhyaḥ"
+        },
+        {
+          "startTime": "5011.49",
+          "endTime": "5015.39",
+          "swhtsp": "",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "मोक्षयिष्यामि मा शुचः ||66||",
+          "iast": "mōkṣayiṣyāmi mā śucaḥ ||66||"
+        }
+      ]
+    },
+    {
+      "shlokaNum": "66",
+      "entry": [
+        {
+          "startTime": "4978.39",
+          "endTime": "4983.5",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "सर्वधर्मान्परित्यज्य",
+          "iast": "sarvadharmānparityajya"
+        },
+        {
+          "startTime": "4989.94",
+          "endTime": "4993.71",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "मामेकं  शरणं  व्रज |",
+          "iast": "māmēkaṃ  śaraṇaṃ  vraja |"
+        },
+        {
+          "startTime": "4998.9",
+          "endTime": "5004.39",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "अहं  त्वा  सर्वपापेभ्यः",
+          "iast": "ahaṃ  tvā  sarvapāpēbhyaḥ"
+        },
+        {
+          "startTime": "5011.49",
+          "endTime": "5015.39",
+          "swhtsp": "",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "मोक्षयिष्यामि मा शुचः ||66||",
+          "iast": "mōkṣayiṣyāmi mā śucaḥ ||66||"
+        }
+      ]
+    },
+    {
       "shlokaNum": "67",
       "entry": [
         {
@@ -3243,6 +3325,88 @@
           "sty": "",
           "text": "हृष्यामि  च  पुनः  पुनः ||77||",
           "iast": "hṛṣyāmi  ca  punaḥ  punaḥ ||77||"
+        }
+      ]
+    },
+    {
+      "shlokaNum": "78",
+      "entry": [
+        {
+          "startTime": "5885.65",
+          "endTime": "5890.31",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "यत्र  योगेश्वरः  कृष्णः",
+          "iast": "yatra  yōgēśvaraḥ  kṛṣṇaḥ"
+        },
+        {
+          "startTime": "5895.92",
+          "endTime": "5899.9",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "यत्र  पार्थो  धनुर्धरः |",
+          "iast": "yatra  pārthō  dhanurdharaḥ |"
+        },
+        {
+          "startTime": "5904.93",
+          "endTime": "5909.25",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "तत्र  श्रीर्विजयो  भूतिः",
+          "iast": "tatra  śrīrvijayō  bhūtiḥ"
+        },
+        {
+          "startTime": "5914.8",
+          "endTime": "5918.37",
+          "swhtsp": "",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "ध्रुवा  नीतिर्मतिर्मम ||78||",
+          "iast": "dhruvā  nītirmatirmama ||78||"
+        }
+      ]
+    },
+    {
+      "shlokaNum": "78",
+      "entry": [
+        {
+          "startTime": "5885.65",
+          "endTime": "5890.31",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "यत्र  योगेश्वरः  कृष्णः",
+          "iast": "yatra  yōgēśvaraḥ  kṛṣṇaḥ"
+        },
+        {
+          "startTime": "5895.92",
+          "endTime": "5899.9",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "यत्र  पार्थो  धनुर्धरः |",
+          "iast": "yatra  pārthō  dhanurdharaḥ |"
+        },
+        {
+          "startTime": "5904.93",
+          "endTime": "5909.25",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "तत्र  श्रीर्विजयो  भूतिः",
+          "iast": "tatra  śrīrvijayō  bhūtiḥ"
+        },
+        {
+          "startTime": "5914.8",
+          "endTime": "5918.37",
+          "swhtsp": "",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "ध्रुवा  नीतिर्मतिर्मम ||78||",
+          "iast": "dhruvā  nītirmatirmama ||78||"
         }
       ]
     },
