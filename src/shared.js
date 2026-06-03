@@ -1054,8 +1054,14 @@ const animator = (function() {
     }
 
     if (el.dataset.lineEnd) {
-      // Line end: snap pointer to current, then after duration jump to next line and pause
+      // Line end: snap to center of last syllable, glide to its right edge over the duration,
+      // then snap to first syllable of the next line and wait 1 laghu before continuing
       positionPointerInstant(el);
+      requestAnimationFrame(function() {
+        var r = el.getBoundingClientRect();
+        pointer.style.transition = 'left ' + (durationMs / 1000) + 's linear';
+        pointer.style.left = (r.right - 18) + 'px';
+      });
       timeoutId = setTimeout(function() {
         el.classList.remove('active');
         el.classList.add('done');

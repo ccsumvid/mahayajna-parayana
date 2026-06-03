@@ -38,44 +38,57 @@
     var isEnglish = renderer.getMode() === 'english';
 
     if (isEnglish && durationMs) {
-      // English mode: snap to left edge of element, then sweep to right over the line duration
-      var startLeft = (rect.left - 18) + 'px';
-      var endLeft = (rect.right - 18) + 'px';
-      var topChanged = Math.abs(rect.top - lastPointerLine) > 10;
+      // English mode: snap to left edge of element, sweep to right over full duration
       pointer.style.transition = 'none';
-      pointer.style.left = startLeft;
+      pointer.style.left = (rect.left - 18) + 'px';
       pointer.style.top = newTop;
       pointer.style.display = 'block';
-      pointer.offsetWidth; // force reflow
-      pointer.style.transition = 'left ' + (durationMs / 1000) + 's linear, top 0.15s ease-out';
-      pointer.style.left = endLeft;
+      pointer.offsetWidth; // force reflow — commits snap before sweep starts
+      pointer.style.transition = 'left ' + (durationMs / 1000) + 's linear';
+      pointer.style.left = (rect.right - 18) + 'px';
       lastPointerLine = rect.top;
-    } else {
-      // Asterisk mode: glide from current toward next syllable
-      var newLeft = (rect.left + rect.width / 2 - 18) + 'px';
-      var transMs = beatMs || 150;
-      var transition = 'left ' + (transMs / 1000) + 's linear, top 0.15s ease-out';
+      return;
+    }
 
-      if (pointer.style.display === 'none') {
-        pointer.style.transition = 'none';
-        pointer.style.left = newLeft;
-        pointer.style.top = newTop;
-        pointer.style.display = 'block';
-        pointer.offsetWidth;
-        pointer.style.transition = transition;
-        lastPointerLine = rect.top;
-      } else if (Math.abs(rect.top - lastPointerLine) > 10) {
-        pointer.style.transition = 'none';
-        pointer.style.top = newTop;
-        pointer.offsetWidth;
-        pointer.style.transition = transition;
-        pointer.style.left = newLeft;
-        lastPointerLine = rect.top;
-      } else {
-        pointer.style.transition = transition;
-        pointer.style.left = newLeft;
-        pointer.style.top = newTop;
+    // Asterisk mode — ahead-prediction model:
+    //   1. Snap to center of THIS syllable (clean start, no cross-line carry-over)
+    //   2. Immediately glide toward center of NEXT same-line syllable over this syllable's full duration
+    //      (so the pointer arrives at the next syllable exactly when it becomes active)
+    //   3. If this is the last syllable on its line, glide to the right edge instead
+    pointer.style.transition = 'none';
+    pointer.style.left = (rect.left + rect.width / 2 - 18) + 'px';
+    pointer.style.top = newTop;
+    pointer.style.display = 'block';
+    pointer.offsetWidth; // force reflow — commits snap, clears any in-progress glide
+    lastPointerLine = rect.top;
+
+    // Find the next non-marker syllable on the SAME display line
+    var elems = renderer.getSyllableElements();
+    var idx = parseInt(el.dataset.index, 10);
+    var nextSameLineEl = null;
+    if (!isNaN(idx)) {
+      for (var ni = idx + 1; ni < elems.length; ni++) {
+        if (!elems[ni].classList.contains('verse-marker')) {
+          var nr = elems[ni].getBoundingClientRect();
+          if (Math.abs(nr.top - rect.top) < 15) {
+            nextSameLineEl = elems[ni];
+          }
+          break; // stop at first non-marker regardless of line
+        }
+        // skip markers, keep searching
       }
+    }
+
+    var glideMs = durationMs || beatMs || 200;
+    if (nextSameLineEl) {
+      // Glide toward center of next syllable on this line
+      var nr = nextSameLineEl.getBoundingClientRect();
+      pointer.style.transition = 'left ' + (glideMs / 1000) + 's linear';
+      pointer.style.left = (nr.left + nr.width / 2 - 18) + 'px';
+    } else {
+      // Last syllable on this line: glide to its right edge to signal line completion
+      pointer.style.transition = 'left ' + (glideMs / 1000) + 's linear';
+      pointer.style.left = (rect.right - 18) + 'px';
     }
   }
 
