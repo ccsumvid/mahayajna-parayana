@@ -717,16 +717,28 @@ const renderer = (function() {
         // Split long-chandas padas (Trishtubh=11, Jagatī=12+) but not Anushtubh (8 syllables)
         const syllableCount = tokens.filter(t => !t.isMarker).length;
         if (syllableCount > 9) {
-          // Split at the space nearest to the midpoint for long lines
-          const mid = Math.floor(displayText.length / 2);
-          let splitIdx = displayText.lastIndexOf(' ', mid);
-          if (splitIdx < 0) splitIdx = displayText.indexOf(' ', mid);
-          if (splitIdx < 0) splitIdx = mid;
+          // Split at word boundary closest to half syllables.
+          // On a tie, prefer the boundary AT OR AFTER the midpoint so the longer
+          // group comes first (natural for Trishtubh 6+5 or 5+6 patterns).
+          const half = Math.ceil(syllableCount / 2);
+          const wordBdry = []; // {syl, wordIdx} for each word boundary
+          let cumSyl = 0, wIdx = 0;
+          for (const t of tokens) {
+            if (!t.isMarker) cumSyl++;
+            if (t.wordEnd) wordBdry.push({ syl: cumSyl, wordIdx: ++wIdx });
+          }
+          let splitAfterSyl = half, splitWord = Math.max(1, Math.floor(wordBdry.length / 2)), bestDist = Infinity;
+          for (const wb of wordBdry) {
+            const dist = Math.abs(wb.syl - half);
+            if (dist < bestDist || (dist === bestDist && wb.syl >= half)) {
+              bestDist = dist; splitAfterSyl = wb.syl; splitWord = wb.wordIdx;
+            }
+          }
 
-          const firstHalf = displayText.slice(0, splitIdx).trim();
-          const secondHalf = displayText.slice(splitIdx).trim();
-          const ratio = splitIdx / displayText.length;
-          const firstBeats = Math.max(1, Math.round(totalBeats * ratio));
+          const dispWords = displayText.split(/\s+/).filter(Boolean);
+          const firstHalf = dispWords.slice(0, splitWord).join(' ');
+          const secondHalf = dispWords.slice(splitWord).join(' ');
+          const firstBeats = Math.max(1, Math.round(totalBeats * splitAfterSyl / syllableCount));
           const secondBeats = Math.max(1, totalBeats - firstBeats);
 
           // First half
@@ -763,9 +775,69 @@ const renderer = (function() {
           lineDiv.appendChild(span);
         }
       } else {
-        // Asterisk mode: show * per syllable using appropriate prosody engine
+        // Asterisk mode: show \u2731 per syllable using appropriate prosody engine
         const tokens = analyzer.analyzeLine(analyzeText);
+        const syllableCount = tokens.filter(t => !t.isMarker).length;
 
+        if (syllableCount > 9) {
+          // Long-chandas: split into two lines at the word boundary closest to half syllables
+          const half = Math.ceil(syllableCount / 2);
+          // Asterisk mode: split at the exact syllable midpoint for even display.
+          // Word boundaries are respected for post-split only (markers stay on line 2).
+          const splitAtSyl = Math.floor(syllableCount / 2);
+
+          const lineDiv2 = document.createElement('div');
+          lineDiv2.className = 'verse-line verse-line-continuation';
+          let currentDiv = lineDiv;
+          let syllIdx = 0, switched = false;
+
+          for (let ti = 0; ti < tokens.length; ti++) {
+            const token = tokens[ti];
+
+            // Switch to line 2 at the exact midpoint syllable
+            if (!switched && !token.isMarker && syllIdx === splitAtSyl) {
+              for (let i = elements.length - 1; i >= lineStartIndex; i--) {
+                if (!elements[i].classList.contains('verse-marker')) {
+                  elements[i].dataset.lineEnd = '1'; break;
+                }
+              }
+              target.appendChild(lineDiv);
+              currentDiv = lineDiv2;
+              switched = true;
+            }
+
+            const span = document.createElement('span');
+            span.dataset.beats = token.beats;
+
+            if (token.isMarker) {
+              span.className = 'verse-marker';
+              span.textContent = token.text;
+              elements.push(span);
+            } else {
+              span.className = 'syllable';
+              span.dataset.index = elements.length;
+              span.textContent = '\u2731';
+              elements.push(span);
+              syllIdx++;
+            }
+            currentDiv.appendChild(span);
+
+            if (token.wordEnd) {
+              currentDiv.appendChild(document.createTextNode(' '));
+            }
+          }
+
+          // Mark lineEnd on last syllable of second half
+          for (let i = elements.length - 1; i >= lineStartIndex; i--) {
+            if (!elements[i].classList.contains('verse-marker')) {
+              elements[i].dataset.lineEnd = '1'; break;
+            }
+          }
+          target.appendChild(currentDiv);
+          continue;
+        }
+
+        // Anushtubh (8 syllables): normal single-line rendering
         for (let ti = 0; ti < tokens.length; ti++) {
           const token = tokens[ti];
           const span = document.createElement('span');
