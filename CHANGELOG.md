@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.3] - 2026-06-03
+
+### Fixed
+- English mode: long-chandas verses (Trishtubh, Jagatī) in all chapters now correctly split into 8 display lines. Previously used character count (threshold 40) which missed Chapter 11 Vishwarupa verses and others with 38-39 char entries. Now uses syllable count from the prosody engine (threshold 9) — Anushtubh padas always have 8 syllables (no split), Trishtubh have 11+ (splits).
+
 ## [0.8.2] - 2026-06-02
 
 ### Added
