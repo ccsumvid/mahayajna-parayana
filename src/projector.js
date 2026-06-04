@@ -130,14 +130,19 @@
   });
 
   // countdown: show/hide countdown overlay
+  // number > 0: show with digit; number = 0: hide; number < 0: blank black screen (pre-countdown)
   window.electronAPI.on('countdown', function(data) {
     var overlay = document.getElementById('countdown-overlay');
     var numberEl = overlay.querySelector('.countdown-number');
     if (data.number > 0) {
       numberEl.textContent = data.number;
       overlay.style.display = 'flex';
-    } else {
+    } else if (data.number === 0) {
       overlay.style.display = 'none';
+    } else {
+      // Blank screen before countdown — hide chapter content behind opaque overlay
+      numberEl.textContent = '';
+      overlay.style.display = 'flex';
     }
   });
 

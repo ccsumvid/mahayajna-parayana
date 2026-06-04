@@ -150,7 +150,12 @@
 
   function playWithCountdown() {
     if (currentPage === 0 && animator.getState().currentIndex < 0) {
-      startCountdown(function() { animator.play(); });
+      // Blank the projector before countdown so chapter header only appears after
+      sendToProjector('countdown', { number: -1 });
+      startCountdown(function() {
+        syncProjectorPage(); // show page fresh after countdown
+        animator.play();
+      });
     } else {
       animator.play();
     }

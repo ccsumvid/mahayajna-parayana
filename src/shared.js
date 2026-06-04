@@ -741,12 +741,12 @@ const renderer = (function() {
           const firstBeats = Math.max(1, Math.round(totalBeats * splitAfterSyl / syllableCount));
           const secondBeats = Math.max(1, totalBeats - firstBeats);
 
-          // First half
+          // First half — splitEnd (not lineEnd) so no extra pause between the two halves
           const span1 = document.createElement('span');
           span1.className = 'syllable';
           span1.dataset.index = elements.length;
           span1.dataset.beats = firstBeats;
-          span1.dataset.lineEnd = '1';
+          span1.dataset.splitEnd = '1';
           span1.textContent = firstHalf;
           elements.push(span1);
           lineDiv.appendChild(span1);
@@ -798,7 +798,7 @@ const renderer = (function() {
             if (!switched && !token.isMarker && syllIdx === splitAtSyl) {
               for (let i = elements.length - 1; i >= lineStartIndex; i--) {
                 if (!elements[i].classList.contains('verse-marker')) {
-                  elements[i].dataset.lineEnd = '1'; break;
+                  elements[i].dataset.splitEnd = '1'; break; // no extra pause between halves
                 }
               }
               target.appendChild(lineDiv);
@@ -1053,9 +1053,9 @@ const animator = (function() {
       nextIdx++;
     }
 
-    if (el.dataset.lineEnd) {
-      // Line end: snap to center of last syllable, glide to its right edge over the duration,
-      // then snap to first syllable of the next line and wait 1 laghu before continuing
+    if (el.dataset.splitEnd) {
+      // Mid-pada split: transition to continuation line with NO extra pause
+      // The two halves of the same pada flow continuously
       positionPointerInstant(el);
       requestAnimationFrame(function() {
         var r = el.getBoundingClientRect();
@@ -1066,8 +1066,29 @@ const animator = (function() {
         el.classList.remove('active');
         el.classList.add('done');
         if (onSyllableChange) onSyllableChange(currentIndex, 'done');
-        // Mark skipped dandas as done
+        currentIndex = nextIdx - 1;
+        if (nextIdx < elems.length) {
+          positionPointerInstant(elems[nextIdx]);
+        }
+        // No extra pause — immediately continue into the second half of the pada
+        advance();
+      }, durationMs);
+    } else if (el.dataset.lineEnd) {
+      // Line end (between padas): glide to right edge, honour marker beats, then pause 1 laghu
+      positionPointerInstant(el);
+      requestAnimationFrame(function() {
+        var r = el.getBoundingClientRect();
+        pointer.style.transition = 'left ' + (durationMs / 1000) + 's linear';
+        pointer.style.left = (r.right - 18) + 'px';
+      });
+      timeoutId = setTimeout(function() {
+        el.classList.remove('active');
+        el.classList.add('done');
+        if (onSyllableChange) onSyllableChange(currentIndex, 'done');
+        // Mark skipped dandas as done and collect their beats (| = 2 beats, || = 4 beats)
+        var markerBeats = 0;
         for (var i = currentIndex + 1; i < nextIdx; i++) {
+          markerBeats += (parseInt(elems[i].dataset.beats, 10) || 0);
           elems[i].classList.add('done');
           if (onSyllableChange) onSyllableChange(i, 'done');
         }
@@ -1075,8 +1096,8 @@ const animator = (function() {
         if (nextIdx < elems.length) {
           positionPointerInstant(elems[nextIdx]);
         }
-        // Wait 1 laghu then advance
-        timeoutId = setTimeout(advance, getBeatMs());
+        // Pause for marker beats + 1 laghu before continuing
+        timeoutId = setTimeout(advance, (markerBeats + 1) * getBeatMs());
       }, durationMs);
     } else if (nextIdx < elems.length) {
       // Glide pointer from current toward next syllable over the duration
