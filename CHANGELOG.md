@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.9] - 2026-06-05
+
+### Fixed
+- Sarvadharman shloka (18.66) now comes AFTER the closing colophon ("ōṃ tatsaditi śrīmad…") in all 18 chapters, as per traditional recitation order
+- Long-chandas verses (Trishtubh etc.) in chapters 1–18 now display as 4 lines matching book layout — 8-line split is restricted to Dhyana Shlokas and Invocation Prayers only
+- Chapter header pages now show Pranam (namaskara) mudra image instead of folded hands
+
 ## [0.8.8] - 2026-06-05
 
 ### Added
