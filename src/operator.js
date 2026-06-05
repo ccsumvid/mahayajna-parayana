@@ -208,8 +208,8 @@
     var leavingHeader = prevPage && prevPage.isHeader;
 
     if (leavingHeader) {
-      // Header still on the projector — show folded hands for 3s, then load verse 1
-      sendToProjector('show-instruction', INSTRUCTION_DATA['folded_hands']);
+      // Header still on the projector — show Pranam mudra for 3s, then load verse 1
+      sendToProjector('show-instruction', INSTRUCTION_DATA['pranam']);
       instructionShowing = true;
       setTimeout(async function() {
         sendToProjector('dismiss-instruction');

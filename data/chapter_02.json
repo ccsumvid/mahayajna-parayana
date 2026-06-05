@@ -3060,47 +3060,6 @@
       ]
     },
     {
-      "shlokaNum": "sarvadharmān",
-      "entry": [
-        {
-          "startTime": "0",
-          "endTime": "0",
-          "swhtsp": "p",
-          "shlNbr": "00",
-          "sty": "",
-          "text": "सर्वधर्मान्परित्यज्य",
-          "iast": "sarvadharmānparityajya"
-        },
-        {
-          "startTime": "0",
-          "endTime": "0",
-          "swhtsp": "l",
-          "shlNbr": "00",
-          "sty": "",
-          "text": "मामेकं  शरणं  व्रज |",
-          "iast": "māmēkaṃ  śaraṇaṃ  vraja |"
-        },
-        {
-          "startTime": "0",
-          "endTime": "0",
-          "swhtsp": "p",
-          "shlNbr": "00",
-          "sty": "",
-          "text": "अहं  त्वा  सर्वपापेभ्यः",
-          "iast": "ahaṃ  tvā  sarvapāpēbhyaḥ"
-        },
-        {
-          "startTime": "0",
-          "endTime": "0",
-          "swhtsp": "",
-          "shlNbr": "00",
-          "sty": "",
-          "text": "मोक्षयिष्यामि मा शुचः ||",
-          "iast": "mōkṣayiṣyāmi mā śucaḥ ||"
-        }
-      ]
-    },
-    {
       "shlokaNum": "",
       "entry": [
         {
@@ -3174,6 +3133,47 @@
           "sty": "",
           "text": "द्वितीयोऽध्यायः ||",
           "iast": "dvitīyō'dhyāyaḥ ||"
+        }
+      ]
+    },
+    {
+      "shlokaNum": "sarvadharmān",
+      "entry": [
+        {
+          "startTime": "0",
+          "endTime": "0",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "सर्वधर्मान्परित्यज्य",
+          "iast": "sarvadharmānparityajya"
+        },
+        {
+          "startTime": "0",
+          "endTime": "0",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "मामेकं  शरणं  व्रज |",
+          "iast": "māmēkaṃ  śaraṇaṃ  vraja |"
+        },
+        {
+          "startTime": "0",
+          "endTime": "0",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "अहं  त्वा  सर्वपापेभ्यः",
+          "iast": "ahaṃ  tvā  sarvapāpēbhyaḥ"
+        },
+        {
+          "startTime": "0",
+          "endTime": "0",
+          "swhtsp": "",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "मोक्षयिष्यामि मा शुचः ||",
+          "iast": "mōkṣayiṣyāmi mā śucaḥ ||"
         }
       ]
     }

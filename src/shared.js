@@ -714,9 +714,12 @@ const renderer = (function() {
         const tokens = analyzer.analyzeLine(analyzeText);
         const totalBeats = tokens.reduce((sum, t) => sum + t.beats, 0);
 
-        // Split long-chandas padas (Trishtubh=11, Jagatī=12+) but not Anushtubh (8 syllables)
+        // Split long-chandas padas only for chapters that use the 8-line book layout
+        // (Dhyana Shlokas and Invocation Prayers). Gita chapters 1-18 use 4-line layout.
         const syllableCount = tokens.filter(t => !t.isMarker).length;
-        if (syllableCount > 9) {
+        const chId = dataLayer.getCurrentChapterId();
+        const allowLongChandasSplit = (chId === '0' || chId === 'invocation_prayers');
+        if (syllableCount > 9 && allowLongChandasSplit) {
           // Split at word boundary closest to half syllables.
           // On a tie, prefer the boundary AT OR AFTER the midpoint so the longer
           // group comes first (natural for Trishtubh 6+5 or 5+6 patterns).
@@ -779,7 +782,9 @@ const renderer = (function() {
         const tokens = analyzer.analyzeLine(analyzeText);
         const syllableCount = tokens.filter(t => !t.isMarker).length;
 
-        if (syllableCount > 9) {
+        const chIdAst = dataLayer.getCurrentChapterId();
+        const allowSplitAst = (chIdAst === '0' || chIdAst === 'invocation_prayers');
+        if (syllableCount > 9 && allowSplitAst) {
           // Long-chandas: split into two lines at the word boundary closest to half syllables
           const half = Math.ceil(syllableCount / 2);
           // Asterisk mode: split at the exact syllable midpoint for even display.
