@@ -43,7 +43,7 @@
           "endTime": "32.9549",
           "swhtsp": "l",
           "shlNbr": "11",
-          "sty": "uh",
+          "sty": "",
           "text": "अर्जुन  उवाच   -",
           "iast": "arjuna  uvāca   -"
         },
@@ -1209,7 +1209,7 @@
           "endTime": "2473.08",
           "swhtsp": "p",
           "shlNbr": "11",
-          "sty": "th",
+          "sty": "",
           "text": "|| ओं  तत्सदिति",
           "iast": "|| ōṃ  tatsaditi"
         },
@@ -1218,7 +1218,7 @@
           "endTime": "2481.54",
           "swhtsp": "p",
           "shlNbr": "11",
-          "sty": "uh",
+          "sty": "",
           "text": "श्रीमद्भगवद्गीतासु",
           "iast": "śrīmadbhagavadgītāsu"
         },
@@ -1227,7 +1227,7 @@
           "endTime": "2488.8",
           "swhtsp": "p",
           "shlNbr": "11",
-          "sty": "uh",
+          "sty": "",
           "text": "उपनिषत्सु",
           "iast": "upaniṣatsu"
         },
@@ -1236,7 +1236,7 @@
           "endTime": "2495.26",
           "swhtsp": "l",
           "shlNbr": "11",
-          "sty": "th",
+          "sty": "",
           "text": "ब्रह्मविद्यायां",
           "iast": "brahmavidyāyāṃ"
         },
@@ -1245,7 +1245,7 @@
           "endTime": "2502.91",
           "swhtsp": "p",
           "shlNbr": "11",
-          "sty": "th",
+          "sty": "",
           "text": "योगशास्त्रे",
           "iast": "yōgaśāstrē"
         },
@@ -1254,7 +1254,7 @@
           "endTime": "2511.14",
           "swhtsp": "p",
           "shlNbr": "11",
-          "sty": "th",
+          "sty": "",
           "text": "श्रीकृष्णार्जुनसंवादे",
           "iast": "śrīkṛṣṇārjunasaṃvādē"
         },
@@ -1263,7 +1263,7 @@
           "endTime": "2522.11",
           "swhtsp": "p",
           "shlNbr": "11",
-          "sty": "th",
+          "sty": "",
           "text": "अक्षरपरब्रह्मयोगो नाम",
           "iast": "akṣaraparabrahmayōgō nāma"
         },
@@ -1272,7 +1272,7 @@
           "endTime": "2532.77",
           "swhtsp": "",
           "shlNbr": "11",
-          "sty": "th",
+          "sty": "",
           "text": "अष्टमोऽध्यायः ||",
           "iast": "aṣṭamō'dhyāyaḥ ||"
         }

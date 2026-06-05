@@ -132,21 +132,21 @@
           "sty": "",
           "text": "प्राहुस्त्यागं   विचक्षणाः ||2||",
           "iast": "prāhustyāgaṃ   vicakṣaṇāḥ ||2||"
-        },
-        {
-          "startTime": "175.177",
-          "endTime": "178.976",
-          "swhtsp": "l",
-          "shlNbr": "2",
-          "sty": "uh",
-          "text": "श्री  भगवानुवाच -",
-          "iast": "śrī  bhagavānuvāca -"
         }
       ]
     },
     {
       "shlokaNum": "3",
       "entry": [
+        {
+          "startTime": "175.177",
+          "endTime": "178.976",
+          "swhtsp": "l",
+          "shlNbr": "2",
+          "sty": "",
+          "text": "श्री  भगवानुवाच -",
+          "iast": "śrī  bhagavānuvāca -"
+        },
         {
           "startTime": "222.276",
           "endTime": "227.877",
