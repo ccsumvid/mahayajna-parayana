@@ -206,6 +206,7 @@
     // so advance() fires instantly — we must pause here so the header stays visible)
     var prevPage = dataLayer.getPage(currentPage);
     var leavingHeader = prevPage && prevPage.isHeader;
+    var leavingColophonOrSarva = prevPage && (prevPage.shlokaNum === '' || prevPage.shlokaNum === 'sarvadharmān');
 
     if (leavingHeader) {
       // Header still on the projector — show Pranam mudra for 3s, then load verse 1
@@ -218,6 +219,20 @@
         await nextPage();
         animator.play();
       }, 3000);
+      return;
+    }
+
+    if (leavingColophonOrSarva) {
+      // Show Pranam briefly as we transition through colophon/sarvadharman
+      sendToProjector('show-instruction', INSTRUCTION_DATA['pranam']);
+      instructionShowing = true;
+      await nextPage();
+      setTimeout(function() {
+        sendToProjector('dismiss-instruction');
+        instructionShowing = false;
+        document.getElementById('instruction-select').value = '';
+        animator.play();
+      }, 2000);
       return;
     }
 
@@ -341,7 +356,8 @@
     projectorOpen = data.open;
     projectorBtn.textContent = projectorOpen ? '\uD83D\uDCFA Close Projector' : '\uD83D\uDCFA Open Projector';
     if (projectorOpen) {
-      // Sync current state to newly opened projector
+      // Re-apply blank overlay, then render behind it (maintain pre-play blank state)
+      sendToProjector('countdown', { number: -1 });
       syncProjectorPage();
     }
   });
