@@ -667,39 +667,58 @@ const renderer = (function() {
           lineDiv.style.color = '#fff';
           lineDiv.style.fontSize = '2.5vw';
         }
+
+        const hHasDevanagari = /[\u0900-\u097F]/.test(line.text);
+        const hAnalyzeText = hHasDevanagari ? line.text : (line.iast || line.text);
+        const hAnalyzer = hHasDevanagari ? prosody : iastProsody;
+        const hTokens = hAnalyzer.analyzeLine(hAnalyzeText);
+        const hLineStart = elements.length;
+
         if (currentMode !== 'asterisk') {
-          // English mode: show IAST text (or fall back to text field)
+          // English mode: one animated span per header line, sweeps left→right
           const displayText = line.iast || line.text;
-          const textNode = document.createTextNode(displayText);
-          lineDiv.appendChild(textNode);
+          const totalBeats = hTokens.reduce((sum, t) => sum + t.beats, 0);
+          const span = document.createElement('span');
+          span.className = 'syllable';
+          span.dataset.index = elements.length;
+          span.dataset.beats = Math.max(1, totalBeats);
+          span.textContent = displayText;
+          elements.push(span);
+          lineDiv.appendChild(span);
         } else {
-          // Asterisk mode: show ✱ per syllable using appropriate prosody engine
-          const hasDevanagari = /[ऀ-ॿ]/.test(line.text);
-          const analyzer = hasDevanagari ? prosody : iastProsody;
-          const analyzeText = hasDevanagari ? line.text : (line.iast || line.text);
-          const tokens = analyzer.analyzeLine(analyzeText);
-          for (let ti = 0; ti < tokens.length; ti++) {
-            const token = tokens[ti];
+          // Asterisk mode: one ✱ per syllable, all animated
+          for (let ti = 0; ti < hTokens.length; ti++) {
+            const token = hTokens[ti];
             const span = document.createElement('span');
+            span.dataset.beats = token.beats;
             if (token.isMarker) {
               span.className = 'verse-marker';
               span.textContent = token.text;
+              elements.push(span);
             } else {
               span.className = 'syllable';
+              span.dataset.index = elements.length;
               span.textContent = '✱';
-              if (token.wordEnd) {
-                lineDiv.appendChild(span);
-                lineDiv.appendChild(document.createTextNode(' '));
-                continue;
-              }
+              elements.push(span);
             }
             lineDiv.appendChild(span);
+            if (token.wordEnd) {
+              lineDiv.appendChild(document.createTextNode(' '));
+            }
           }
         }
+
+        // Mark lineEnd on last non-marker element of this header line
+        for (let i = elements.length - 1; i >= hLineStart; i--) {
+          if (!elements[i].classList.contains('verse-marker')) {
+            elements[i].dataset.lineEnd = '1';
+            break;
+          }
+        }
+
         target.appendChild(lineDiv);
         continue;
       }
-
       const lineStartIndex = elements.length;
 
       // Determine which prosody engine to use
