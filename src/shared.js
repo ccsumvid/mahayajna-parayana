@@ -708,9 +708,6 @@ const renderer = (function() {
               elements.push(span);
             }
             lineDiv.appendChild(span);
-            if (token.wordEnd) {
-              lineDiv.appendChild(document.createTextNode(' '));
-            }
           }
         }
 
@@ -851,10 +848,6 @@ const renderer = (function() {
               syllIdx++;
             }
             currentDiv.appendChild(span);
-
-            if (token.wordEnd) {
-              currentDiv.appendChild(document.createTextNode(' '));
-            }
           }
 
           // Mark lineEnd on last syllable of second half
@@ -885,10 +878,6 @@ const renderer = (function() {
           }
 
           lineDiv.appendChild(span);
-
-          if (token.wordEnd) {
-            lineDiv.appendChild(document.createTextNode('\u2003'));
-          }
         }
       }
 
