@@ -1112,31 +1112,41 @@ const renderer = (function() {
    * content-box width. So: temporarily force `nowrap` (scrollWidth then
    * reports the full single-line text width) and compare it against the
    * parent's content width. Font size is reduced until the text fits (floor
-   * 18px), then wrapping is restored (graceful fallback if the floor is hit).
+   * MIN_FONT_PX), then wrapping is restored (graceful fallback if the floor
+   * is hit).
    *
    * Runs synchronously at the end of the render path, BEFORE the animator
    * reads syllable positions via getBoundingClientRect.
    * Lines are recreated from scratch on every render, so no font-size reset
    * is needed (resetting would clobber the inline vw sizes on header lines).
-   * Inside a hidden container all widths measure 0, making this a no-op.
+   * Fitted sizes are recomputed on the next render; window resize is not
+   * observed. Inside a hidden container all widths measure 0 — a no-op.
    */
+  const MIN_FONT_PX = 18; // legibility floor for hall projection
   function fitLines(target) {
     const parent = target.parentElement;
     if (!parent) return;
-    const ps = getComputedStyle(parent);
-    const avail = parent.clientWidth - parseFloat(ps.paddingLeft) - parseFloat(ps.paddingRight);
+    const parentStyle = getComputedStyle(parent);
+    const avail = parent.clientWidth - parseFloat(parentStyle.paddingLeft) - parseFloat(parentStyle.paddingRight);
     if (!(avail > 0)) return; // hidden container — nothing to measure
     const lines = target.querySelectorAll('.verse-line');
     for (let i = 0; i < lines.length; i++) {
       const el = lines[i];
       el.style.whiteSpace = 'nowrap';
-      let size = parseFloat(getComputedStyle(el).fontSize);
-      let guard = 0;
       // "- 1" guards against scrollWidth's integer rounding hiding a
       // sub-pixel overflow that would still wrap the last word
-      while (el.scrollWidth > avail - 1 && size > 18 && guard++ < 30) {
-        size -= 1;
+      if (el.scrollWidth > avail - 1) {
+        // Multiplicative first estimate — converges in ~2 passes even from
+        // large vw-based header sizes (no fixed iteration cap needed)
+        let size = parseFloat(getComputedStyle(el).fontSize);
+        size = Math.max(MIN_FONT_PX, Math.floor(size * (avail - 1) / el.scrollWidth));
         el.style.fontSize = size + 'px';
+        // Step down 1px for any residual overflow (letter-spacing etc. do
+        // not scale perfectly linearly); terminates at the floor
+        while (el.scrollWidth > avail - 1 && size > MIN_FONT_PX) {
+          size -= 1;
+          el.style.fontSize = size + 'px';
+        }
       }
       el.style.whiteSpace = '';
     }
