@@ -120,6 +120,15 @@
       syncProjectorPage();
     }
 
+    // Feedback #6: namaskara mudra while header lines animate; dismissed on verse pages.
+    var pageData = dataLayer.getPage(index);
+    if (pageData && pageData.isHeader) {
+      sendToProjector('show-instruction', INSTRUCTION_DATA['folded_hands']);
+      instructionShowing = true;
+    } else if (instructionShowing) {
+      dismissInstruction();
+    }
+
     // Pre-render next page
     var nextIdx = currentPage + 1;
     if (nextIdx < dataLayer.getPageCount()) {

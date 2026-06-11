@@ -272,6 +272,32 @@ body {
   font-size: 1.5vw;
   margin-top: 40px;
 }
+/* Corner variant: small card in the top-right that doesn't cover the animating header
+   (mirrors the projector app's instruction card) */
+#instruction-overlay.corner {
+  inset: auto;
+  top: 3vh;
+  right: 3vw;
+  width: 28vw;
+  max-width: 420px;
+  background: rgba(0, 0, 0, 0.88);
+  border: 2px solid #c94;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+}
+#instruction-overlay.corner .instruction-image {
+  max-height: 22vh;
+  max-width: 100%;
+}
+#instruction-overlay.corner .instruction-text {
+  font-size: clamp(13px, 1.8vw, 26px);
+  padding: 0;
+}
+#instruction-overlay.corner .instruction-dismiss {
+  font-size: clamp(10px, 1.2vw, 16px);
+  margin-top: 4px;
+}
 </style>
 </head>
 <body>
@@ -1495,6 +1521,15 @@ const ui = (function() {
     updatePageInfo();
     syncShlokaDropdown();
 
+    // Feedback #6: namaskara mudra (corner card) while header lines animate; dismissed on verse pages.
+    const pageData = dataLayer.getPage(index);
+    const instructionOverlay = document.getElementById('instruction-overlay');
+    if (pageData && pageData.isHeader) {
+      showInstruction('folded_hands', { corner: true });
+    } else if (instructionOverlay.style.display === 'flex') {
+      dismissInstruction();
+    }
+
     // Pre-render the next page into the hidden buffer
     var nextIdx = currentPage + 1;
     if (nextIdx < dataLayer.getPageCount()) {
@@ -1771,10 +1806,12 @@ var INSTRUCTION_DATA = {
   sitting_placement: { text: 'Sit directly in your square\nLabel should be in front of you' }
 };
 
-function showInstruction(key) {
+function showInstruction(key, opts) {
   var data = INSTRUCTION_DATA[key];
   if (!data) return;
   var overlay = document.getElementById('instruction-overlay');
+  // corner: small card in the top-right (doesn't cover animating text) — mirrors the projector app
+  overlay.classList.toggle('corner', !!(opts && opts.corner));
   var content = overlay.querySelector('.instruction-content');
   content.innerHTML = '';
   if (data.image) {
