@@ -337,6 +337,7 @@ body {
   <div class="separator"></div>
   <select id="chapter-select">
     <option value="datta_stavam">Datta Stavam</option>
+    <option value="invocation_prayers">Invocation Prayers</option>
     <option value="0">gītā dhyāna ślōkāḥ</option>
     <option value="1">Ch 1 – arjunaviṣādayōgaḥ</option>
     <option value="2">Ch 2 – sāṅkhyayōgaḥ</option>
@@ -400,6 +401,7 @@ body {
 const EMBEDDED_DHYANA = {
   "name": "गीता  ध्यान  श्लोकाः",
   "chapterNum": "00",
+  "defaultBpm": 280,
   "shloka": [
     {
       "shlokaNum": "",
@@ -903,7 +905,7 @@ const dataLayer = (function() {
 
   // Ordered list of all chapter IDs
   const CHAPTER_ORDER = [
-    'datta_stavam', '0',
+    'datta_stavam', 'invocation_prayers', '0',
     '1','2','3','4','5','6','7','8','9',
     '10','11','12','13','14','15','16','17','18',
     'gita_mahatmyam', 'kshama_prarthana', 'gita_saram', 'gita_arati', 'sadguru_stavam'
@@ -918,8 +920,8 @@ const dataLayer = (function() {
     const result = [];
 
     for (const shloka of shlokas) {
-      const headerEntries = shloka.entry.filter(e => e.sty === 'fh' || e.sty === 'th' || e.sty === 'uh');
-      const regularEntries = shloka.entry.filter(e => e.sty !== 'fh' && e.sty !== 'th' && e.sty !== 'uh');
+      const headerEntries = shloka.entry.filter(e => e.sty === 'fh' || e.sty === 'sh' || e.sty === 'th' || e.sty === 'uh');
+      const regularEntries = shloka.entry.filter(e => e.sty !== 'fh' && e.sty !== 'sh' && e.sty !== 'th' && e.sty !== 'uh');
 
       for (const hdr of headerEntries) {
         result.push({
@@ -990,7 +992,7 @@ const dataLayer = (function() {
       prefetch(CHAPTER_ORDER[idx + 1]);
     }
 
-    return { name: chapterName, pageCount: pages.length };
+    return { name: chapterName, pageCount: pages.length, defaultBpm: data.defaultBpm || null };
   }
 
   function getPage(index) {
@@ -1491,6 +1493,12 @@ const ui = (function() {
       renderer.invalidatePrefetch();
       const result = await dataLayer.fetchChapter(chapterId);
       console.log('Chapter loaded:', result);
+      // Apply chapter-specific default BPM if defined (e.g. Dhyana Shlokas)
+      if (result && result.defaultBpm) {
+        animator.setBpm(result.defaultBpm);
+        var bpmInputEl = document.getElementById('bpm-input');
+        if (bpmInputEl) bpmInputEl.value = Math.round(animator.getState().bpm / 4);
+      }
       populateShlokaDropdown();
       currentPage = 0;
       showPage(0);
