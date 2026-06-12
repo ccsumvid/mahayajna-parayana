@@ -55,6 +55,9 @@
     } else {
       shlokaText = 'Page ' + (currentPage + 1);
     }
+    if (page && !page.isHeader && page.repeatTotal > 1) {
+      shlokaText += ' (' + page.repeatPass + '/' + page.repeatTotal + ')';
+    }
     document.getElementById('shloka-info').textContent = shlokaText + '  ·  ' + (currentPage + 1) + ' of ' + total;
   }
 
@@ -72,6 +75,9 @@
         opt.textContent = 'Closing';
       } else {
         opt.textContent = page.shlokaNum ? 'Shloka ' + page.shlokaNum : 'Page ' + (i + 1);
+      }
+      if (!page.isHeader && page.repeatTotal > 1) {
+        opt.textContent += ' (' + page.repeatPass + '/' + page.repeatTotal + ')';
       }
       shlokaSelect.appendChild(opt);
     }
