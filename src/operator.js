@@ -640,12 +640,15 @@
     saveChantSettings();
     applyChantSettings();
 
-    // If the changed BPM applies to the current chapter, re-apply it immediately.
+    // If an EXPLICIT per-section override exists for the current chapter, re-apply it
+    // immediately. With no override, leave the running tempo untouched — never pull
+    // from DATA_DEFAULT_BPM here (that map is for panel pre-fill hints only), so a
+    // live SPM nudge survives saving an unrelated setting.
     var curId = dataLayer.getCurrentChapterId();
     if (curId !== null) {
-      var eff = effectiveSectionBpm(String(curId));
-      if (typeof eff === 'number') {
-        animator.setBpm(eff);
+      var override = chantSettings.sectionBpm[String(curId)];
+      if (typeof override === 'number') {
+        animator.setBpm(override);
         currentChapterBpm = animator.getState().bpm;
         closerSlowApplied = false;
         updateSpmDisplay();
