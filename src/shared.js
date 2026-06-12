@@ -552,7 +552,7 @@ const dataLayer = (function() {
         const repeat = Math.max(1, parseInt(shloka.repeat, 10) || 1);
         for (let r = 0; r < repeat; r++) {
           result.push(Object.assign({}, page, {
-            repeatPass: repeat > 1 ? (r + 1) : 0,
+            repeatPass: r + 1,
             repeatTotal: repeat
           }));
         }
