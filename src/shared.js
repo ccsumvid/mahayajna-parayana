@@ -936,7 +936,11 @@ const animator = (function() {
   let currentIndex = -1;
   let timeoutId = null;
   let bpm = 380; // internal beats; displayed as whole notes (bpm/4), default 95
-  // tempo sheet: 30 ms at sloka end (fixed pause at every || double-danda)
+  // Standard line-end pause: 2 mātrās (one guru) after every pāda/line, applied to
+  // all chapters EXCEPT the Dhyana shlokas (chapter '0'), which keep their own
+  // meter-aware pacing per the recitation instructions.
+  const LINE_END_PAUSE_BEATS = 2;
+  // Dhyana exception only: fixed 30 ms at sloka end (|| double-danda) per the tempo sheet.
   const SLOKA_END_PAUSE_MS = 30;
   let onSyllableChange = null; // callback: function(index, state) where state is 'active' or 'done'
   let onAutoAdvance = null; // callback: called when animation reaches end of page
@@ -1076,10 +1080,15 @@ const animator = (function() {
         if (nextIdx < elems.length) {
           positionPointerInstant(elems[nextIdx]);
         }
-        // End of sloka (|| double-danda = 4 beats) gets a fixed short pause per the
-        // tempo sheet ("30 msec at sloka end"); mid-sloka pada breaks (| = 2 beats)
-        // and intra-pada line wraps keep the beat-based pause (marker beats + 1 laghu).
-        var pauseMs = (markerBeats >= 4) ? SLOKA_END_PAUSE_MS : (markerBeats + 1) * getBeatMs();
+        // Line-end pause. Standard chapters pause 2 mātrās (one guru) at every line
+        // end. The Dhyana shlokas (chapter '0') are excepted and keep their existing
+        // meter-aware pacing: a fixed 30 ms at sloka end (||), beat-based elsewhere.
+        var pauseMs;
+        if (dataLayer.getCurrentChapterId() === '0') {
+          pauseMs = (markerBeats >= 4) ? SLOKA_END_PAUSE_MS : (markerBeats + 1) * getBeatMs();
+        } else {
+          pauseMs = LINE_END_PAUSE_BEATS * getBeatMs();
+        }
         timeoutId = setTimeout(advance, pauseMs);
       }, durationMs);
     } else if (nextIdx < elems.length) {
@@ -1148,7 +1157,10 @@ const animator = (function() {
       if (btnPlay) btnPlay.disabled = true;
       if (btnPause) btnPause.disabled = false;
       const beats = parseInt(elems[currentIndex].dataset.beats, 10) || 1;
-      const lineEndPause = elems[currentIndex].dataset.lineEnd ? 1 : 0;
+      var lineEndPause = 0;
+      if (elems[currentIndex].dataset.lineEnd) {
+        lineEndPause = dataLayer.getCurrentChapterId() === '0' ? 1 : LINE_END_PAUSE_BEATS;
+      }
       timeoutId = setTimeout(advance, (beats + lineEndPause) * getBeatMs());
     } else if (currentIndex < 0) {
       hidePointer();
