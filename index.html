@@ -1359,8 +1359,10 @@ const animator = (function() {
     // Activate current element
     el.classList.add('active');
 
-    const beats = parseInt(el.dataset.beats, 10) || 1;
-    const durationMs = beats * getBeatMs();
+    // Even pointer movement: every syllable advances over one beat regardless of
+    // its guru/laghu weight, so the hand glides evenly across all asterisks. Total
+    // time for a line is therefore driven by its syllable count (its length).
+    const durationMs = getBeatMs();
 
     // Find the next non-marker syllable
     var nextIdx = currentIndex + 1;
@@ -1460,12 +1462,13 @@ const animator = (function() {
       isPlaying = true;
       btnPlay.style.display = 'none';
       btnPause.style.display = '';
-      const beats = parseInt(elems[currentIndex].dataset.beats, 10) || 1;
+      // Even movement: the current syllable resumes over one beat (not its
+      // guru/laghu weight), plus any line-end pause.
       var lineEndPause = 0;
       if (elems[currentIndex].dataset.lineEnd) {
         lineEndPause = dataLayer.getCurrentChapterId() === '0' ? 1 : LINE_END_PAUSE_BEATS;
       }
-      timeoutId = setTimeout(advance, (beats + lineEndPause) * getBeatMs());
+      timeoutId = setTimeout(advance, (1 + lineEndPause) * getBeatMs());
     } else if (currentIndex < 0) {
       hidePointer();
     }
