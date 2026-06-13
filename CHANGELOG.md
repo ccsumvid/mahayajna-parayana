@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.10.0] - 2026-06-12
+
+User-feedback release (App Fixes.xlsx — see issue #18).
+
+### Added
+- **Operator settings panel** (⚙ Settings): tune all chant constants live — line-end pause (mātrās), Dhyana sloka-end pause, colophon slowdown, countdown duration, chapter gap, and per-section tempo. Persisted across restarts, with reset-to-defaults.
+- **Configurable inter-chapter gap** (3/5/7 s) before the auto-mode countdown.
+- **Repeat playback**: a shloka can repeat N times (e.g. Samarpana "ōṁ acyutāya namaḥ…" ×3) with a (pass/total) page label.
+- **Purnam** closing section added to the parayana krama.
+
+### Changed
+- **Line-end pause = 2 mātrās (one guru)** at every line end for all chapters except the Dhyana shlokas, which keep their meter-aware pacing.
+- **Per-section default tempo** applied from the feedback table (Datta 90, Invocation 85, Dhyana 75, Ch1 85, Ch2–18 & Mahatmyam 95, Samarpana 80 SPM).
+- **Auto-play flow**: full stop after Datta Stavam (manual resume); countdown (with śruti cue) now plays before each chapter in auto mode; namaskara mudra shows during header animation (no post-header pause) and on colophon / Ch18 verses 66 & 78 / Ch1 entry / pre-invocation.
+- **Parayana krama**: Sadguru Stavam removed from the running order; Gita Saram and Gita Arati are now heading-only (no verse guidance).
+- **Page labels** show "Header" / "Closing" instead of "Shloka 0" / "Shloka 31".
+- Asterisk syllables render contiguous (no word gaps); long verse/header lines auto-fit; colophon pages run slightly slower and are center-aligned.
+
+### Fixed
+- **Chapter 18 ending colophon** corrected to the full "ōṁ tatsaditi śrīmanmahābhāratē … aṣṭādaśōdhyāyaḥ" form (center-aligned), keeping the sarvadharmān verse.
+- Chapter 6 verse 1 duplicate "śrī bhagavānuvāca" removed; 6.33 zero-width artifact fixed; Chapter 15 title corrected (puruṣōttamaprāptiyōgaḥ); Chapter 13 title spacing; Datta Stavam trailing duplicate page removed.
+- Samarpana: "Kshama Prarthana" header/line removed; the Purnam mantra moved out to its own section.
+- Web app engine resynced with the desktop engine (chapter order, header detection, per-section tempo).
+
 ## [0.9.2] - 2026-06-06
 
 ### Fixed
