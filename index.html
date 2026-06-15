@@ -1594,8 +1594,8 @@ const ui = (function() {
       page.shlokaNum === 'sarvadharmān' ||
       (chId === '18' && (page.shlokaNum === '66' || page.shlokaNum === '78')));
     if (needsMudra) {
-      // Feedback #20: chapter 1 opens with the crisscrossed-fingers animation.
-      showInstruction((chId === '1' && page.isHeader) ? 'namaskara_anim' : 'folded_hands', { corner: true });
+      // Pranam añjali mudra for every mudra overlay site.
+      showInstruction('pranam', { corner: true });
       headerInstructionShowing = true;
     } else if (headerInstructionShowing) {
       dismissInstruction();
@@ -1661,7 +1661,7 @@ const ui = (function() {
     if (atChapterEnd) {
       // Namaskara mudra at every chapter end (mirrors the operator app). Auto-shown —
       // may be auto-dismissed by the gap timer or the next chapter's verse pages.
-      showInstruction('folded_hands');
+      showInstruction('pranam');
       headerInstructionShowing = true;
 
       // Hard stop after Datta Stavam — resume manually (click overlay to dismiss).
@@ -1873,7 +1873,7 @@ const ui = (function() {
 var INSTRUCTION_DATA = {
   folded_hands:      { image: 'img/instructions/image7.gif' },
   namaskara_anim:    { image: 'img/instructions/image9.gif' },
-  pranam:            { text: 'Pran\u0101m', image: 'img/instructions/image9.gif' },
+  pranam:            { text: 'Pran\u0101m', image: 'img/instructions/image7.gif' },
   louder:            { text: 'LOUDER' },
   sit_straight:      { text: 'Sit Straight', image: 'img/instructions/image9.gif' },
   increase_sruti:    { text: 'Increase Sruti', image: 'img/instructions/shruti-increase.png' },

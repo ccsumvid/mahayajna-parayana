@@ -226,8 +226,8 @@
       page.shlokaNum === 'sarvadharmān' ||
       (chId === '18' && (page.shlokaNum === '66' || page.shlokaNum === '78')));
     if (needsMudra) {
-      // Feedback #20: chapter 1 opens with the crisscrossed-fingers animation.
-      var mudraKey = (chId === '1' && page.isHeader) ? 'namaskara_anim' : 'folded_hands';
+      // Pranam añjali mudra for every mudra overlay site.
+      var mudraKey = 'pranam';
       sendToProjector('show-instruction', INSTRUCTION_DATA[mudraKey]);
       instructionShowing = true;
       headerInstructionShowing = true;
@@ -342,7 +342,7 @@
     if (atChapterEnd) {
       // Feedback #2 + #7: namaskara mudra at every chapter end (auto-shown — may be
       // auto-dismissed by the gap timer or the next chapter's verse pages).
-      sendToProjector('show-instruction', INSTRUCTION_DATA['folded_hands']);
+      sendToProjector('show-instruction', INSTRUCTION_DATA['pranam']);
       instructionShowing = true;
       headerInstructionShowing = true;
 
