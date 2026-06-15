@@ -580,7 +580,7 @@ const dataLayer = (function() {
       if (regularEntries.length > 0) {
         const page = {
           shlokaNum: shloka.shlokaNum,
-          lines: regularEntries.map(e => ({ text: e.text, iast: e.iast || '', swhtsp: e.swhtsp, sty: e.sty })),
+          lines: regularEntries.map(e => ({ text: e.text, iast: e.iast || '', swhtsp: e.swhtsp, sty: e.sty, cont: e.cont })),
           isHeader: false,
           meter: shloka.meter
         };
@@ -710,7 +710,7 @@ const renderer = (function() {
 
     for (const line of pageData.lines) {
       const lineDiv = document.createElement('div');
-      lineDiv.className = 'verse-line';
+      lineDiv.className = 'verse-line' + (line.cont ? ' cont' : '');
 
       if (pageData.isHeader) {
         if (line.sty === 'fh') {

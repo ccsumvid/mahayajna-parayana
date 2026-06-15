@@ -72,6 +72,8 @@ body {
   max-width: 95vw;
   text-align: left;
 }
+/* Continuation (second half of a pāda) — indented per the Dhyana script */
+.verse-line.cont { padding-left: 2.5em; }
 /* Colophon (closer) pages render center-aligned */
 #verse-container-a.centered, #verse-container-b.centered { align-items: center; }
 #verse-container-a.centered .verse-line, #verse-container-b.centered .verse-line { text-align: center; }
@@ -971,7 +973,7 @@ const dataLayer = (function() {
       if (regularEntries.length > 0) {
         const page = {
           shlokaNum: shloka.shlokaNum,
-          lines: regularEntries.map(e => ({ text: e.text, iast: e.iast || '', swhtsp: e.swhtsp, sty: e.sty })),
+          lines: regularEntries.map(e => ({ text: e.text, iast: e.iast || '', swhtsp: e.swhtsp, sty: e.sty, cont: e.cont })),
           isHeader: false,
           meter: shloka.meter
         };
@@ -1101,7 +1103,7 @@ const renderer = (function() {
 
     for (const line of pageData.lines) {
       const lineDiv = document.createElement('div');
-      lineDiv.className = 'verse-line';
+      lineDiv.className = 'verse-line' + (line.cont ? ' cont' : '');
 
       if (pageData.isHeader) {
         // Headers: always show IAST text (or fall back to text field)
