@@ -1738,10 +1738,6 @@ const ui = (function() {
     var chapterId = dataLayer.getCurrentChapterId();
 
     if (atChapterEnd) {
-      // Heading-only sections (Gita Sāram, Gita Ārati): no lyrics shown — stay on the
-      // title, no auto-advance, no auto-mudra. Operator moves on manually.
-      if (chapterId === 'gita_saram' || chapterId === 'gita_arati') return;
-
       // Namaskara mudra at every chapter end (mirrors the operator app). Auto-shown —
       // may be auto-dismissed by the gap timer or the next chapter's verse pages.
       showInstruction('pranam');
@@ -1764,11 +1760,6 @@ const ui = (function() {
         await nextPage(); // crosses into next chapter (hidden behind the overlay)
         var newChapter = dataLayer.getCurrentChapterId();
         if (newChapter === chapterId) { preBlank.style.display = 'none'; return; } // load failed
-        // Landed on a heading-only title section: show title and stay (no countdown/play).
-        if (newChapter === 'gita_saram' || newChapter === 'gita_arati') {
-          preBlank.style.display = 'none'; // reveal the title
-          return;
-        }
         startCountdown(function() {      // "Listen to Sruti" countdown, then play
           animator.play();
         });

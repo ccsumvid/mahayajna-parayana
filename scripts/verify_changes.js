@@ -100,18 +100,24 @@ section('4. Purnam chapter');
   }
 }
 
-section('5. Gita Saram & Gita Arati heading-only');
+section('5. Gita Saram & Gita Arati lyrics restored (#33) + Saram repetition (#28)');
 {
-  for (const f of ['gita_saram.json', 'gita_arati.json']) {
-    const d = loadJSON(f);
-    if (d) {
-      check(d.shloka.length === 1, f + ' one shloka');
-      const e = d.shloka[0].entry;
-      check(e.length === 1 && HEADER_STY.has(e[0].sty), f + ' single header entry');
-      const pg = groupIntoPages(d.shloka);
-      check(pg.length === 1 && pg[0].isHeader, f + ' renders one header page (no verses)');
-    }
+  const gs = loadJSON('gita_saram.json');
+  if (gs) {
+    check(gs.shloka.length > 5, 'gita_saram has verse lyrics (not heading-only) — ' + gs.shloka.length + ' shlokas');
+    const reps = gs.shloka.filter(s => s.repeat && s.repeat > 1);
+    check(reps.length >= 3, 'gita_saram has repetition (#28): ' + reps.length + ' repeated units');
+    check(gs.shloka.some(s => /pallavi/i.test(JSON.stringify(s))), 'gita_saram has the Pallavi refrain');
   }
+  const ga = loadJSON('gita_arati.json');
+  if (ga) {
+    check(ga.shloka.length > 5, 'gita_arati has verse lyrics — ' + ga.shloka.length + ' shlokas');
+    // spellings fixed from PDF (no abbreviated "jay"/"kamal" forms)
+    const joined = JSON.stringify(ga.shloka);
+    check(/jaya\s+bhagavadgītē/.test(joined) && !/"jay\b/.test(joined), 'gita_arati uses full spellings (jaya, not jay)');
+  }
+  const gm = loadJSON('gita_mahatmyam.json');
+  if (gm) check(gm.shloka.length > 20, 'gita_mahatmyam present (' + gm.shloka.length + ' shlokas, 4-line layout #35)');
 }
 
 section('6. Data corrections (Ch6, Ch13, Ch15, Ch18, Datta)');
@@ -135,7 +141,12 @@ section('6. Data corrections (Ch6, Ch13, Ch15, Ch18, Datta)');
     check(JSON.stringify(lines) === JSON.stringify(CH18_COLOPHON), 'Ch18 colophon matches the 6 expected lines');
   }
   const dt = loadJSON('datta_stavam.json');
-  if (dt) { const pg = groupIntoPages(dt.shloka); check(pg.length === 10, 'Datta Stavam 10 pages got ' + pg.length); }
+  if (dt) {
+    const pg = groupIntoPages(dt.shloka);
+    check(pg.length === 11, 'Datta Stavam 11 pages (incl. trailing invocation slide #31) got ' + pg.length);
+    const last = dt.shloka[dt.shloka.length - 1];
+    check(last && /gaṇēśāya namaḥ/.test(last.entry[0].iast || ''), 'Datta Stavam ends with the invocation slide (#31)');
+  }
 }
 
 section('7. Page labels + repeat expansion');
@@ -193,14 +204,22 @@ section('9. Operator settings panel');
   check(!/CHANT_DEFAULTS/.test(readSrc('index.html')), 'web index.html has no settings panel (operator-only)');
 }
 
-section('10. Heading-only sections stay on title (no auto-advance)');
+section('10. New issue work (#20/#21 dhyana meter, #26 uvaca, #30 titles, #34 zoom)');
 {
+  const sh = readSrc('src/shared.js');
   const op = readSrc('src/operator.js');
-  const idx = readSrc('index.html');
-  check(/chapterId === 'gita_saram' \|\| chapterId === 'gita_arati'\) return/.test(op), 'operator: gita_saram/gita_arati stay on title');
-  check(/newChapter === 'gita_saram' \|\| newChapter === 'gita_arati'\) return/.test(op), 'operator: landing on title section stays (no countdown/play)');
-  check(/chapterId === 'gita_saram' \|\| chapterId === 'gita_arati'\) return/.test(idx), 'web: gita_saram/gita_arati stay on title');
-  check(/newChapter === 'gita_saram' \|\| newChapter === 'gita_arati'\) return/.test(idx), 'web: landing on title section stays');
+  // Gita Saram/Arati now play through (stay-on-title special-cases removed since lyrics restored)
+  check(!/chapterId === 'gita_saram' \|\| chapterId === 'gita_arati'\) return/.test(op), 'stay-on-title special-case removed (sections have lyrics now)');
+  // #20/#21: EMBEDDED_DHYANA shlokas carry a meter; renderInto uses it for Dhyana
+  check(/"meter":\s*"tristubh"/.test(sh) && /"meter":\s*"anustubh"/.test(sh), 'EMBEDDED_DHYANA has meter fields (#20/#21)');
+  // #26: uvaca lines tagged splitEnd (no pause)
+  check(/uvāca/.test(sh) && /splitEnd/.test(sh), 'uvāca-line splitEnd handling present (#26)');
+  // #30: chapter titles spaced (ch1 title entry)
+  const c1 = loadJSON('chapter_01.json');
+  if (c1) check(c1.shloka[0].entry.some(e => (e.iast || '') === 'arjuna viṣāda yōgaḥ'), 'Ch1 title spaced "arjuna viṣāda yōgaḥ" (#30)');
+  // #34: verse zoom setting + projector CSS var
+  check(/verseZoom/.test(op), 'verseZoom setting present (#34)');
+  check(/--verse-zoom/.test(readSrc('src/projector.html')), 'projector verse-zoom CSS var (#34)');
 }
 
 console.log('\n' + '='.repeat(56));

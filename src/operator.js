@@ -14,6 +14,7 @@
     colophonBpmDrop: 20,     // internal bpm drop on colophon / ending pages
     countdownSeconds: 5,     // pre-play countdown length
     chapterGapSeconds: 3,    // gap between chapters before the countdown
+    verseZoom: 100,          // projector verse-text zoom (%) — #34
     sectionBpm: {}           // chapterId -> internal BPM override; empty = use data defaultBpm
   };
 
@@ -22,6 +23,7 @@
       colophonBpmDrop: CHANT_DEFAULTS.colophonBpmDrop,
       countdownSeconds: CHANT_DEFAULTS.countdownSeconds,
       chapterGapSeconds: CHANT_DEFAULTS.chapterGapSeconds,
+      verseZoom: CHANT_DEFAULTS.verseZoom,
       sectionBpm: {}
     };
     try {
@@ -32,6 +34,7 @@
           if (typeof parsed.colophonBpmDrop === 'number') merged.colophonBpmDrop = parsed.colophonBpmDrop;
           if (typeof parsed.countdownSeconds === 'number') merged.countdownSeconds = parsed.countdownSeconds;
           if (typeof parsed.chapterGapSeconds === 'number') merged.chapterGapSeconds = parsed.chapterGapSeconds;
+          if (typeof parsed.verseZoom === 'number') merged.verseZoom = parsed.verseZoom;
           if (parsed.sectionBpm && typeof parsed.sectionBpm === 'object') {
             for (var k in parsed.sectionBpm) {
               if (Object.prototype.hasOwnProperty.call(parsed.sectionBpm, k) && typeof parsed.sectionBpm[k] === 'number') {
@@ -57,12 +60,16 @@
     }
   }
 
-  // Line-end pauses are now data-driven (per-line dataset.lineEndPauseBeats set by
-  // the renderer from chapter/meter), so there are no animator-side pause values to
-  // push. Operator-side constants (colophon drop, countdown, chapter gap, section
-  // BPM) are read directly from chantSettings at their use sites. Kept as a no-op
-  // stub so existing call sites remain valid.
-  function applyChantSettings() {}
+  // Line-end pauses are data-driven (renderer sets dataset.lineEndPauseBeats), and
+  // colophon-drop / countdown / chapter-gap / section-BPM are read at their use sites.
+  // applyChantSettings pushes the projector verse-zoom (#34) to the projector and the
+  // operator's own (hidden) display.
+  function applyChantSettings() {
+    var scale = (chantSettings.verseZoom || 100) / 100;
+    sendToProjector('verse-zoom', { scale: scale });
+    var disp = document.getElementById('display');
+    if (disp) disp.style.setProperty('--verse-zoom', String(scale));
+  }
 
   // The tempo the chapter should run at: set on chapter load (defaultBpm or current),
   // updated on manual SPM change. Colophon pages run at currentChapterBpm - colophonBpmDrop.
@@ -331,11 +338,6 @@
     var chapterId = dataLayer.getCurrentChapterId();
 
     if (atChapterEnd) {
-      // Heading-only sections (Gita Sāram, Gita Ārati): no lyrics are shown, so just
-      // stay on the title — no auto-advance, no auto-mudra. The operator moves on
-      // manually and shows any instructions in the top-right corner.
-      if (chapterId === 'gita_saram' || chapterId === 'gita_arati') return;
-
       // Feedback #2 + #7: namaskara mudra at every chapter end (auto-shown — may be
       // auto-dismissed by the gap timer or the next chapter's verse pages).
       sendToProjector('show-instruction', INSTRUCTION_DATA['pranam']);
@@ -359,11 +361,6 @@
         await loadChapter(nextId, true); // crosses into next chapter, blanked
         var newChapter = dataLayer.getCurrentChapterId();
         if (newChapter === chapterId) return; // chapter load failed — stay stopped
-        // Landed on a heading-only title section: show the title and stay (no countdown/play).
-        if (newChapter === 'gita_saram' || newChapter === 'gita_arati') {
-          syncProjectorPage(); // reveal the title (loadChapter blanked it)
-          return;
-        }
         startCountdown(function() {
           // Reveal page 0 (fh header) and animate it as chanting begins.
           syncProjectorPage();
@@ -503,6 +500,7 @@
     if (projectorOpen) {
       // Re-apply blank overlay, then render behind it (maintain pre-play blank state)
       sendToProjector('countdown', { number: -1 });
+      applyChantSettings(); // push current verse-zoom (#34) to the (re)opened projector
       syncProjectorPage();
     }
   });
@@ -548,6 +546,7 @@
   var fldColophon = document.getElementById('set-colophon');
   var fldCountdown = document.getElementById('set-countdown');
   var fldChapterGap = document.getElementById('set-chapter-gap');
+  var fldVerseZoom = document.getElementById('set-verse-zoom');
 
   // Build the per-section BPM rows once (label + number input keyed by chapterId).
   // Displayed value is SPM = internal bpm / 4 (matches the rest of the UI); we store
@@ -605,6 +604,7 @@
     fldColophon.value = chantSettings.colophonBpmDrop;
     fldCountdown.value = chantSettings.countdownSeconds;
     fldChapterGap.value = chantSettings.chapterGapSeconds;
+    if (fldVerseZoom) fldVerseZoom.value = chantSettings.verseZoom;
     for (var id in sectionBpmInputs) {
       if (!Object.prototype.hasOwnProperty.call(sectionBpmInputs, id)) continue;
       var internal = effectiveSectionBpm(id);
@@ -630,6 +630,7 @@
     chantSettings.colophonBpmDrop = clampNum(fldColophon.value, 0, 80, CHANT_DEFAULTS.colophonBpmDrop);
     chantSettings.countdownSeconds = Math.round(clampNum(fldCountdown.value, 0, 15, CHANT_DEFAULTS.countdownSeconds));
     chantSettings.chapterGapSeconds = clampNum(fldChapterGap.value, 0, 15, CHANT_DEFAULTS.chapterGapSeconds);
+    if (fldVerseZoom) chantSettings.verseZoom = Math.round(clampNum(fldVerseZoom.value, 50, 250, CHANT_DEFAULTS.verseZoom));
 
     // Per-section BPM: a value present → store internal = SPM*4; blank → clear override.
     chantSettings.sectionBpm = {};

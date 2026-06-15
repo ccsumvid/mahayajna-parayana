@@ -152,6 +152,11 @@
     hidePointer(); // reset pointer state so next active syllable snaps cleanly
   });
 
+  // verse-zoom: operator-controlled verse text zoom (#34)
+  window.electronAPI.on('verse-zoom', function(data) {
+    document.documentElement.style.setProperty('--verse-zoom', String(data.scale || 1));
+  });
+
   // spm-change: pace indicator watermark
   window.electronAPI.on('spm-change', function(data) {
     var el = document.getElementById('pace-indicator');
