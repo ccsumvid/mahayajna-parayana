@@ -581,7 +581,8 @@ const dataLayer = (function() {
         const page = {
           shlokaNum: shloka.shlokaNum,
           lines: regularEntries.map(e => ({ text: e.text, iast: e.iast || '', swhtsp: e.swhtsp, sty: e.sty })),
-          isHeader: false
+          isHeader: false,
+          meter: shloka.meter
         };
         // Colophon ("|| ōṃ tatsaditi ...") — leading || distinguishes it from
         // verse 17.23, which also begins with "ōṃ tatsaditi".
@@ -757,10 +758,11 @@ const renderer = (function() {
           }
         }
 
-        // Header lines use splitEnd (no inter-line pause) — the page itself ends naturally
+        // Header lines get a normal line-end pause of 3 mātrās (Issue 1).
         for (let i = elements.length - 1; i >= hLineStart; i--) {
           if (!elements[i].classList.contains('verse-marker')) {
-            elements[i].dataset.splitEnd = '1';
+            elements[i].dataset.lineEnd = '1';
+            elements[i].dataset.lineEndPauseBeats = '3';
             break;
           }
         }
@@ -832,6 +834,13 @@ const renderer = (function() {
       for (let i = elements.length - 1; i >= lineStartIndex; i--) {
         if (!elements[i].classList.contains('verse-marker')) {
           elements[i].dataset.lineEnd = '1';
+          // Meter-aware line-end pause (Issues 2 & 5):
+          //   Dhyana (chapter '0'): 3 mātrās per line.
+          //   triṣṭubh verses: 4 mātrās; anuṣṭubh (default): 3 mātrās.
+          var lineEndBeats = (dataLayer.getCurrentChapterId() === '0')
+            ? '3'
+            : (pageData.meter === 'tristubh' ? '4' : '3');
+          elements[i].dataset.lineEndPauseBeats = lineEndBeats;
           break;
         }
       }
@@ -981,20 +990,14 @@ const animator = (function() {
   let currentIndex = -1;
   let timeoutId = null;
   let bpm = 380; // internal beats; displayed as whole notes (bpm/4), default 95
-  // Standard line-end pause: 2 mātrās (one guru) after every pāda/line, applied to
-  // all chapters EXCEPT the Dhyana shlokas (chapter '0'), which keep their own
-  // meter-aware pacing per the recitation instructions.
-  // Mutable (operator Settings panel overrides via setChantConfig); index.html keeps
-  // its own hardcoded const copy — the standalone web app is unaffected.
-  let LINE_END_PAUSE_BEATS = 2;
-  // Dhyana exception only: fixed 30 ms at sloka end (|| double-danda) per the tempo sheet.
-  let SLOKA_END_PAUSE_MS = 30;
+  // Fallback default when a line-end element carries no dataset.lineEndPauseBeats.
+  // Line-end pauses are now data-driven (per-line dataset.lineEndPauseBeats set by
+  // the renderer from chapter/meter), so this is only a safety net.
+  const LINE_END_PAUSE_BEATS = 3;
 
-  // Operator Settings panel hook — update the two pause values at runtime.
-  function setChantConfig(cfg) {
-    if (cfg && typeof cfg.lineEndPauseBeats === 'number') LINE_END_PAUSE_BEATS = cfg.lineEndPauseBeats;
-    if (cfg && typeof cfg.dhyanaSlokaEndMs === 'number') SLOKA_END_PAUSE_MS = cfg.dhyanaSlokaEndMs;
-  }
+  // Operator Settings panel hook — line-end pause is now data-driven, so this is
+  // an inert stub kept for call-site compatibility.
+  function setChantConfig(cfg) {}
   let onSyllableChange = null; // callback: function(index, state) where state is 'active' or 'done'
   let onAutoAdvance = null; // callback: called when animation reaches end of page
 
@@ -1135,15 +1138,10 @@ const animator = (function() {
         if (nextIdx < elems.length) {
           positionPointerInstant(elems[nextIdx]);
         }
-        // Line-end pause. Standard chapters pause 2 mātrās (one guru) at every line
-        // end. The Dhyana shlokas (chapter '0') are excepted and keep their existing
-        // meter-aware pacing: a fixed 30 ms at sloka end (||), beat-based elsewhere.
-        var pauseMs;
-        if (dataLayer.getCurrentChapterId() === '0') {
-          pauseMs = (markerBeats >= 4) ? SLOKA_END_PAUSE_MS : (markerBeats + 1) * getBeatMs();
-        } else {
-          pauseMs = LINE_END_PAUSE_BEATS * getBeatMs();
-        }
+        // Line-end pause is data-driven: each line-end element carries
+        // dataset.lineEndPauseBeats (3 for headers/anuṣṭubh/Dhyana, 4 for triṣṭubh).
+        var lp = parseFloat(el.dataset.lineEndPauseBeats);
+        var pauseMs = (lp > 0 ? lp : LINE_END_PAUSE_BEATS) * getBeatMs();
         timeoutId = setTimeout(advance, pauseMs);
       }, durationMs);
     } else if (nextIdx < elems.length) {
@@ -1212,10 +1210,8 @@ const animator = (function() {
       if (btnPlay) btnPlay.disabled = true;
       if (btnPause) btnPause.disabled = false;
       var beats = parseFloat(elems[currentIndex].dataset.beats) || 1;
-      var lineEndPause = 0;
-      if (elems[currentIndex].dataset.lineEnd) {
-        lineEndPause = dataLayer.getCurrentChapterId() === '0' ? 1 : LINE_END_PAUSE_BEATS;
-      }
+      var lp = parseFloat(elems[currentIndex].dataset.lineEndPauseBeats);
+      var lineEndPause = elems[currentIndex].dataset.lineEnd ? (lp > 0 ? lp : LINE_END_PAUSE_BEATS) : 0;
       timeoutId = setTimeout(advance, (beats + lineEndPause) * getBeatMs());
     } else if (currentIndex < 0) {
       hidePointer();

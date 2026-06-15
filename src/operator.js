@@ -11,8 +11,6 @@
   // The standalone web app (index.html) keeps its own hardcoded defaults; this panel
   // only affects the Electron operator window.
   var CHANT_DEFAULTS = {
-    lineEndPauseBeats: 2,    // mātrās at each non-dhyana line end (shared.js LINE_END_PAUSE_BEATS)
-    dhyanaSlokaEndMs: 30,    // dhyana '0' sloka-end pause in ms (shared.js SLOKA_END_PAUSE_MS)
     colophonBpmDrop: 20,     // internal bpm drop on colophon / ending pages
     countdownSeconds: 5,     // pre-play countdown length
     chapterGapSeconds: 3,    // gap between chapters before the countdown
@@ -21,8 +19,6 @@
 
   function loadChantSettings() {
     var merged = {
-      lineEndPauseBeats: CHANT_DEFAULTS.lineEndPauseBeats,
-      dhyanaSlokaEndMs: CHANT_DEFAULTS.dhyanaSlokaEndMs,
       colophonBpmDrop: CHANT_DEFAULTS.colophonBpmDrop,
       countdownSeconds: CHANT_DEFAULTS.countdownSeconds,
       chapterGapSeconds: CHANT_DEFAULTS.chapterGapSeconds,
@@ -33,8 +29,6 @@
       if (raw) {
         var parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
-          if (typeof parsed.lineEndPauseBeats === 'number') merged.lineEndPauseBeats = parsed.lineEndPauseBeats;
-          if (typeof parsed.dhyanaSlokaEndMs === 'number') merged.dhyanaSlokaEndMs = parsed.dhyanaSlokaEndMs;
           if (typeof parsed.colophonBpmDrop === 'number') merged.colophonBpmDrop = parsed.colophonBpmDrop;
           if (typeof parsed.countdownSeconds === 'number') merged.countdownSeconds = parsed.countdownSeconds;
           if (typeof parsed.chapterGapSeconds === 'number') merged.chapterGapSeconds = parsed.chapterGapSeconds;
@@ -63,15 +57,12 @@
     }
   }
 
-  // Push the two animator-side pause values into shared.js. Operator-side constants
-  // (colophon drop, countdown, chapter gap, section BPM) are read directly from
-  // chantSettings at their use sites.
-  function applyChantSettings() {
-    animator.setChantConfig({
-      lineEndPauseBeats: chantSettings.lineEndPauseBeats,
-      dhyanaSlokaEndMs: chantSettings.dhyanaSlokaEndMs
-    });
-  }
+  // Line-end pauses are now data-driven (per-line dataset.lineEndPauseBeats set by
+  // the renderer from chapter/meter), so there are no animator-side pause values to
+  // push. Operator-side constants (colophon drop, countdown, chapter gap, section
+  // BPM) are read directly from chantSettings at their use sites. Kept as a no-op
+  // stub so existing call sites remain valid.
+  function applyChantSettings() {}
 
   // The tempo the chapter should run at: set on chapter load (defaultBpm or current),
   // updated on manual SPM change. Colophon pages run at currentChapterBpm - colophonBpmDrop.
@@ -534,8 +525,6 @@
   // --- Settings panel ---
   var settingsOverlay = document.getElementById('settings-overlay');
   var settingsSectionList = document.getElementById('settings-section-list');
-  var fldLineEnd = document.getElementById('set-line-end');
-  var fldSlokaEnd = document.getElementById('set-sloka-end');
   var fldColophon = document.getElementById('set-colophon');
   var fldCountdown = document.getElementById('set-countdown');
   var fldChapterGap = document.getElementById('set-chapter-gap');
@@ -593,8 +582,6 @@
 
   // Populate all settings inputs from the current chantSettings.
   function refreshSettingsInputs() {
-    fldLineEnd.value = chantSettings.lineEndPauseBeats;
-    fldSlokaEnd.value = chantSettings.dhyanaSlokaEndMs;
     fldColophon.value = chantSettings.colophonBpmDrop;
     fldCountdown.value = chantSettings.countdownSeconds;
     fldChapterGap.value = chantSettings.chapterGapSeconds;
@@ -620,8 +607,6 @@
   }
 
   function saveSettings() {
-    chantSettings.lineEndPauseBeats = clampNum(fldLineEnd.value, 0, 8, CHANT_DEFAULTS.lineEndPauseBeats);
-    chantSettings.dhyanaSlokaEndMs = clampNum(fldSlokaEnd.value, 0, 2000, CHANT_DEFAULTS.dhyanaSlokaEndMs);
     chantSettings.colophonBpmDrop = clampNum(fldColophon.value, 0, 80, CHANT_DEFAULTS.colophonBpmDrop);
     chantSettings.countdownSeconds = Math.round(clampNum(fldCountdown.value, 0, 15, CHANT_DEFAULTS.countdownSeconds));
     chantSettings.chapterGapSeconds = clampNum(fldChapterGap.value, 0, 15, CHANT_DEFAULTS.chapterGapSeconds);
@@ -675,6 +660,6 @@
   });
 
   // --- Init ---
-  applyChantSettings();              // push persisted pause values into the animator
+  applyChantSettings();              // no-op stub (line-end pauses are data-driven)
   loadChapter('datta_stavam', true); // start with blank projector until Play
 })();
