@@ -193,6 +193,16 @@ section('9. Operator settings panel');
   check(!/CHANT_DEFAULTS/.test(readSrc('index.html')), 'web index.html has no settings panel (operator-only)');
 }
 
+section('10. Heading-only sections stay on title (no auto-advance)');
+{
+  const op = readSrc('src/operator.js');
+  const idx = readSrc('index.html');
+  check(/chapterId === 'gita_saram' \|\| chapterId === 'gita_arati'\) return/.test(op), 'operator: gita_saram/gita_arati stay on title');
+  check(/newChapter === 'gita_saram' \|\| newChapter === 'gita_arati'\) return/.test(op), 'operator: landing on title section stays (no countdown/play)');
+  check(/chapterId === 'gita_saram' \|\| chapterId === 'gita_arati'\) return/.test(idx), 'web: gita_saram/gita_arati stay on title');
+  check(/newChapter === 'gita_saram' \|\| newChapter === 'gita_arati'\) return/.test(idx), 'web: landing on title section stays');
+}
+
 console.log('\n' + '='.repeat(56));
 if (fail === 0) { console.log('✅ ALL ' + pass + ' CHECKS PASSED'); console.log('Next: manual checklist docs/feedback/v0.10.0-test-plan.md'); process.exit(0); }
 else { console.log('❌ ' + fail + ' FAILED, ' + pass + ' passed'); process.exit(1); }

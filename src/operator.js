@@ -331,6 +331,11 @@
     var chapterId = dataLayer.getCurrentChapterId();
 
     if (atChapterEnd) {
+      // Heading-only sections (Gita Sāram, Gita Ārati): no lyrics are shown, so just
+      // stay on the title — no auto-advance, no auto-mudra. The operator moves on
+      // manually and shows any instructions in the top-right corner.
+      if (chapterId === 'gita_saram' || chapterId === 'gita_arati') return;
+
       // Feedback #2 + #7: namaskara mudra at every chapter end (auto-shown — may be
       // auto-dismissed by the gap timer or the next chapter's verse pages).
       sendToProjector('show-instruction', INSTRUCTION_DATA['pranam']);
@@ -345,7 +350,10 @@
       setTimeout(async function() {
         dismissInstruction();
         await nextPage(); // crosses into next chapter
-        if (dataLayer.getCurrentChapterId() === chapterId) return; // chapter load failed — stay stopped
+        var newChapter = dataLayer.getCurrentChapterId();
+        if (newChapter === chapterId) return; // chapter load failed — stay stopped
+        // Landed on a heading-only title section: show the title and stay (no countdown/play).
+        if (newChapter === 'gita_saram' || newChapter === 'gita_arati') return;
         startCountdown(function() {
           animator.play();
         });
