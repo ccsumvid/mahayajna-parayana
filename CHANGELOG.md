@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.10.1] - 2026-06-15
+
+Parayana QA fixes (issue #36) + pointer refinements.
+
+### Changed
+- **Even pointer movement**: the hand now glides at a constant rate across all asterisks (each syllable gets the line's average beats) instead of dwelling longer on heavy syllables; the line's total time and tempo are preserved.
+- **Header pause**: a 3-mātrā pause after each header line (headers no longer race past).
+- **Meter-aware line pauses**: each shloka carries a syllable count + meter in the data; line-end pauses are now **3 mātrās for anuṣṭubh, 4 for triṣṭubh** automatically. The manual line-pause setting is removed (now data-driven).
+- **Namaskara Mudra**: the crossed-fingers visual is replaced everywhere with the Pranam añjali (palms-together) mudra.
+- **Gita Sāram & Gita Ārati**: shown as a heading-only title (no lyrics); the app stays on the title and does not auto-advance — the operator moves on manually, with instructions in the top-right overlay.
+
+### Fixed
+- **Dhyana shlokas** re-lined to the script's 8-line / 4-line layout (each pāda split into a main line + continuation), with a 3-mātrā pause per line.
+- **Samarpana** slide 4: only the first line (`ōṁ acyutāya namaḥ…`) repeats ×3; the second line shows once (the two extra slides are gone).
+- Pointer no longer overshoots past the last asterisk at line end.
+
 ## [0.10.0] - 2026-06-12
 
 User-feedback release (App Fixes.xlsx — see issue #18).
