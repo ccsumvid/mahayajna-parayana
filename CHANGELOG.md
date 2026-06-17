@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3] - 2026-06-16
+
+Parayana QA issue #27 (sloka line structure) re-fix.
+
+### Fixed
+- **Sloka line structure** (#27): rebuilt affected verses to render one pāda per line matching the English transcript (reference PDF). Removed stray duplicate-pāda entries that rendered a 5th line in 1.26, 2.40, 5.8, 5.9, 5.21, 5.23, 5.27, 6.14, 6.22, 18.35; removed entries that had leaked in from the following sloka in 9.14 and 9.31; removed a duplicate speaker label in 17.2; and split merged pādas in 6.9 and 17.8. (The earlier v0.10.2 pass only corrected diacritics, not the line structure.)
+
 ## [0.10.2] - 2026-06-16
 
 Parayana QA issues #19–#35 (GitHub).
