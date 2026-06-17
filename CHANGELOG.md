@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.5] - 2026-06-17
+
+QA follow-ups (#36) + theme (#37).
+
+### Added
+- **Header pause setting** (#36.1): a separate "Header pause (mātrās)" control in the operator settings panel (default 3), independent of the verse line-break pause.
+- **Manual per-meter line pauses** (#36.2): "Anuṣṭubh line pause" and "Triṣṭubh line pause" are now editable in settings, restoring manual fine-tuning. Changes re-render the current page immediately.
+- **Projector dark/light theme toggle** (#37): operator setting switches the projector between the dark (black bg, white/gold text) and a light (white bg, dark text, dark-goldenrod highlight) palette. Defaults to dark.
+
+### Changed
+- **Triṣṭubh line-end pause** default raised from 4 → **4.5 mātrās** (#36.2).
+- **Samarpana slide 4** (#36.3): the `ōṁ acyutāya namaḥ…` invocation now sits on a single consolidated slide (shown 3× with a 3-mātrā pause after each iteration) instead of three fast page-flips.
+
 ## [0.10.4] - 2026-06-17
 
 ### Fixed
