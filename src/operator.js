@@ -15,6 +15,10 @@
     countdownSeconds: 5,     // pre-play countdown length
     chapterGapSeconds: 3,    // gap between chapters before the countdown
     verseZoom: 100,          // projector verse-text zoom (%) — #34
+    headerPauseBeats: 3,     // pause (mātrās) after each header line — #36.1
+    anustubhBeats: 3,        // anuṣṭubh verse line-end pause (mātrās) — #36.2
+    tristubhBeats: 4.5,      // triṣṭubh verse line-end pause (mātrās) — #36.2
+    theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
     sectionBpm: {}           // chapterId -> internal BPM override; empty = use data defaultBpm
   };
 
@@ -24,6 +28,10 @@
       countdownSeconds: CHANT_DEFAULTS.countdownSeconds,
       chapterGapSeconds: CHANT_DEFAULTS.chapterGapSeconds,
       verseZoom: CHANT_DEFAULTS.verseZoom,
+      headerPauseBeats: CHANT_DEFAULTS.headerPauseBeats,
+      anustubhBeats: CHANT_DEFAULTS.anustubhBeats,
+      tristubhBeats: CHANT_DEFAULTS.tristubhBeats,
+      theme: CHANT_DEFAULTS.theme,
       sectionBpm: {}
     };
     try {
@@ -35,6 +43,10 @@
           if (typeof parsed.countdownSeconds === 'number') merged.countdownSeconds = parsed.countdownSeconds;
           if (typeof parsed.chapterGapSeconds === 'number') merged.chapterGapSeconds = parsed.chapterGapSeconds;
           if (typeof parsed.verseZoom === 'number') merged.verseZoom = parsed.verseZoom;
+          if (typeof parsed.headerPauseBeats === 'number') merged.headerPauseBeats = parsed.headerPauseBeats;
+          if (typeof parsed.anustubhBeats === 'number') merged.anustubhBeats = parsed.anustubhBeats;
+          if (typeof parsed.tristubhBeats === 'number') merged.tristubhBeats = parsed.tristubhBeats;
+          if (parsed.theme === 'dark' || parsed.theme === 'light') merged.theme = parsed.theme;
           if (parsed.sectionBpm && typeof parsed.sectionBpm === 'object') {
             for (var k in parsed.sectionBpm) {
               if (Object.prototype.hasOwnProperty.call(parsed.sectionBpm, k) && typeof parsed.sectionBpm[k] === 'number') {
@@ -69,6 +81,15 @@
     sendToProjector('verse-zoom', { scale: scale });
     var disp = document.getElementById('display');
     if (disp) disp.style.setProperty('--verse-zoom', String(scale));
+    // Line-end pause config — renderer encodes these into dataset.lineEndPauseBeats
+    // at render time (#36.1 header pause; #36.2 meter-aware verse pauses).
+    renderer.setPaceConfig({
+      headerPauseBeats: chantSettings.headerPauseBeats,
+      anustubhBeats: chantSettings.anustubhBeats,
+      tristubhBeats: chantSettings.tristubhBeats
+    });
+    // Projector theme — dark (black bg) / light (white bg) — #37
+    sendToProjector('theme', { theme: chantSettings.theme });
   }
 
   // The tempo the chapter should run at: set on chapter load (defaultBpm or current),
@@ -547,6 +568,10 @@
   var fldCountdown = document.getElementById('set-countdown');
   var fldChapterGap = document.getElementById('set-chapter-gap');
   var fldVerseZoom = document.getElementById('set-verse-zoom');
+  var fldHeaderPause = document.getElementById('set-header-pause');
+  var fldAnustubh = document.getElementById('set-anustubh-pause');
+  var fldTristubh = document.getElementById('set-tristubh-pause');
+  var fldTheme = document.getElementById('set-theme');
 
   // Build the per-section BPM rows once (label + number input keyed by chapterId).
   // Displayed value is SPM = internal bpm / 4 (matches the rest of the UI); we store
@@ -605,6 +630,10 @@
     fldCountdown.value = chantSettings.countdownSeconds;
     fldChapterGap.value = chantSettings.chapterGapSeconds;
     if (fldVerseZoom) fldVerseZoom.value = chantSettings.verseZoom;
+    if (fldHeaderPause) fldHeaderPause.value = chantSettings.headerPauseBeats;
+    if (fldAnustubh) fldAnustubh.value = chantSettings.anustubhBeats;
+    if (fldTristubh) fldTristubh.value = chantSettings.tristubhBeats;
+    if (fldTheme) fldTheme.value = chantSettings.theme;
     for (var id in sectionBpmInputs) {
       if (!Object.prototype.hasOwnProperty.call(sectionBpmInputs, id)) continue;
       var internal = effectiveSectionBpm(id);
@@ -631,6 +660,10 @@
     chantSettings.countdownSeconds = Math.round(clampNum(fldCountdown.value, 0, 15, CHANT_DEFAULTS.countdownSeconds));
     chantSettings.chapterGapSeconds = clampNum(fldChapterGap.value, 0, 15, CHANT_DEFAULTS.chapterGapSeconds);
     if (fldVerseZoom) chantSettings.verseZoom = Math.round(clampNum(fldVerseZoom.value, 50, 250, CHANT_DEFAULTS.verseZoom));
+    if (fldHeaderPause) chantSettings.headerPauseBeats = clampNum(fldHeaderPause.value, 0, 12, CHANT_DEFAULTS.headerPauseBeats);
+    if (fldAnustubh) chantSettings.anustubhBeats = clampNum(fldAnustubh.value, 0, 12, CHANT_DEFAULTS.anustubhBeats);
+    if (fldTristubh) chantSettings.tristubhBeats = clampNum(fldTristubh.value, 0, 12, CHANT_DEFAULTS.tristubhBeats);
+    if (fldTheme) chantSettings.theme = (fldTheme.value === 'light') ? 'light' : 'dark';
 
     // Per-section BPM: a value present → store internal = SPM*4; blank → clear override.
     chantSettings.sectionBpm = {};
@@ -661,6 +694,12 @@
       }
     }
 
+    // Re-render the current page so changed line-end pauses take effect immediately
+    // (the renderer encodes pauses into dataset at render time).
+    if (dataLayer.getCurrentChapterId() !== null && dataLayer.getPage(currentPage)) {
+      showPage(currentPage);
+    }
+
     closeSettings();
   }
 
@@ -681,6 +720,6 @@
   });
 
   // --- Init ---
-  applyChantSettings();              // no-op stub (line-end pauses are data-driven)
+  applyChantSettings();              // push pace config + theme before the first render
   loadChapter('datta_stavam', true); // start with blank projector until Play
 })();

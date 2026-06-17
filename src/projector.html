@@ -9,10 +9,25 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* Theme palette (#37). Default dark; light overrides below. */
+    :root {
+      --bg: #000;
+      --fg: #fff;
+      --active: #FFD700;
+      --done: #888;
+      --marker: #666;
+    }
+    :root[data-theme="light"] {
+      --bg: #fff;
+      --fg: #1a1a1a;
+      --active: #b8860b;
+      --done: #999;
+      --marker: #aaa;
+    }
     html, body { width: 100%; height: 100%; overflow: hidden; }
     body {
-      background: #000;
-      color: #fff;
+      background: var(--bg);
+      color: var(--fg);
       font-family: 'Noto Sans Devanagari', 'Noto Sans', Arial, sans-serif;
       display: flex;
       flex-direction: column;
@@ -42,7 +57,7 @@
     #countdown-overlay {
       position: absolute;
       inset: 0;
-      background: #000;
+      background: var(--bg);
       display: none;
       flex-direction: column;
       justify-content: center;
@@ -51,19 +66,19 @@
     }
     #countdown-overlay .countdown-label {
       font-size: 3vw;
-      color: #FFD700;
+      color: var(--active);
       margin-bottom: 40px;
     }
     #countdown-overlay .countdown-number {
       font-size: 12vw;
-      color: #fff;
+      color: var(--fg);
       font-weight: bold;
     }
     #countdown-overlay .countdown-sruti {
       position: absolute;
       bottom: 10vh;
       font-size: 3vw;
-      color: #FFD700;
+      color: var(--active);
       letter-spacing: 0.1em;
     }
     #verse-container-a, #verse-container-b {
@@ -95,15 +110,15 @@
       transition: color 0.1s;
     }
     .syllable.active {
-      color: #FFD700;
+      color: var(--active);
     }
     .syllable.done {
-      color: #888;
+      color: var(--done);
     }
     .verse-marker {
       display: inline-block;
       margin-left: 0.3em;
-      color: #666;
+      color: var(--marker);
     }
     #pointer {
       position: absolute;

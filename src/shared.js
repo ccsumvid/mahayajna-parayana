@@ -594,7 +594,7 @@ const dataLayer = (function() {
       if (regularEntries.length > 0) {
         const page = {
           shlokaNum: shloka.shlokaNum,
-          lines: regularEntries.map(e => ({ text: e.text, iast: e.iast || '', swhtsp: e.swhtsp, sty: e.sty, cont: e.cont })),
+          lines: regularEntries.map(e => ({ text: e.text, iast: e.iast || '', swhtsp: e.swhtsp, sty: e.sty, cont: e.cont, pauseBeats: e.pauseBeats })),
           isHeader: false,
           meter: shloka.meter
         };
@@ -704,6 +704,19 @@ const renderer = (function() {
   let currentPageData = null;
   let syllableElements = [];
 
+  // Configurable pace (mātrās). Operator settings override these via setPaceConfig;
+  // the standalone web app uses these defaults.
+  //   headerPauseBeats — pause after each header line (separate from verse lines, #36.1)
+  //   anustubhBeats / tristubhBeats — meter-aware verse line-end pause (#20/#21; tristubh 4.5 per #36.2)
+  // A page line may also carry an explicit `pauseBeats` that overrides the meter default (#36.3).
+  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 3, tristubhBeats: 4.5 };
+  function setPaceConfig(cfg) {
+    if (!cfg) return;
+    if (typeof cfg.headerPauseBeats === 'number') paceConfig.headerPauseBeats = cfg.headerPauseBeats;
+    if (typeof cfg.anustubhBeats === 'number') paceConfig.anustubhBeats = cfg.anustubhBeats;
+    if (typeof cfg.tristubhBeats === 'number') paceConfig.tristubhBeats = cfg.tristubhBeats;
+  }
+
   // Double-buffer: render next page into the hidden buffer, swap on advance
   const buffers = [
     document.getElementById('verse-container-a'),
@@ -772,11 +785,11 @@ const renderer = (function() {
           }
         }
 
-        // Header lines get a normal line-end pause of 3 mātrās (Issue 1).
+        // Header lines get a configurable line-end pause (default 3 mātrās, #36.1).
         for (let i = elements.length - 1; i >= hLineStart; i--) {
           if (!elements[i].classList.contains('verse-marker')) {
             elements[i].dataset.lineEnd = '1';
-            elements[i].dataset.lineEndPauseBeats = '3';
+            elements[i].dataset.lineEndPauseBeats = String(paceConfig.headerPauseBeats);
             break;
           }
         }
@@ -858,13 +871,16 @@ const renderer = (function() {
           if (isUvaca) {
             // Uvāca speaker label end: 2 mātrās (one guru).
             elements[i].dataset.lineEndPauseBeats = '2';
+          } else if (typeof line.pauseBeats === 'number') {
+            // Explicit per-line override (e.g. Samarpana repeated invocation, #36.3).
+            elements[i].dataset.lineEndPauseBeats = String(line.pauseBeats);
           } else {
-            // Meter-aware line-end pause (Issues #20/#21):
-            //   triṣṭubh verses: 4 mātrās; anuṣṭubh (default): 3 mātrās.
-            //   Dhyana (chapter '0') now carries per-shloka meter too, so it
-            //   uses the same rule (no flat-3 special case).
-            var lineEndBeats = (pageData.meter === 'tristubh' ? '4' : '3');
-            elements[i].dataset.lineEndPauseBeats = lineEndBeats;
+            // Meter-aware line-end pause (Issues #20/#21), configurable via the
+            // operator settings: triṣṭubh (default 4.5) vs anuṣṭubh (default 3).
+            // Dhyana (chapter '0') carries per-shloka meter too, so it uses the
+            // same rule (no flat-3 special case).
+            var lineEndBeats = (pageData.meter === 'tristubh' ? paceConfig.tristubhBeats : paceConfig.anustubhBeats);
+            elements[i].dataset.lineEndPauseBeats = String(lineEndBeats);
           }
           break;
         }
@@ -1000,6 +1016,7 @@ const renderer = (function() {
     swapPrefetched: swapPrefetched,
     invalidatePrefetch: invalidatePrefetch,
     setMode: setMode,
+    setPaceConfig: setPaceConfig,
     getSyllableElements: getSyllableElements,
     getMode: function() { return currentMode; }
   };

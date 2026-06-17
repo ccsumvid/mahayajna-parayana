@@ -157,6 +157,15 @@
     document.documentElement.style.setProperty('--verse-zoom', String(data.scale || 1));
   });
 
+  // theme: operator-controlled dark/light projector theme (#37)
+  window.electronAPI.on('theme', function(data) {
+    if (data && data.theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  });
+
   // spm-change: pace indicator watermark
   window.electronAPI.on('spm-change', function(data) {
     var el = document.getElementById('pace-indicator');
