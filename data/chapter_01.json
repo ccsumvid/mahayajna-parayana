@@ -1156,8 +1156,8 @@
           "swhtsp": "p",
           "shlNbr": "00",
           "sty": "",
-          "text": "तत्रापश्यत्स्थितान्  पार्थः",
-          "iast": "tatrāpaśyatsthitān  pārthaḥ"
+          "text": "तत्रापश्यत्स्थितान्पार्थः",
+          "iast": "tatrāpaśyatsthitānpārthaḥ"
         },
         {
           "startTime": "2187.73",
@@ -1185,15 +1185,6 @@
           "sty": "",
           "text": "पुत्रान्पौत्रान्सखींस्तथा ||26||",
           "iast": "putrānpautrānsakhīṃstathā ||26||"
-        },
-        {
-          "startTime": "2224.72",
-          "endTime": "2230.22",
-          "swhtsp": "p",
-          "shlNbr": "26",
-          "sty": "",
-          "text": "तत्रापश्यत्स्थितान्पार्थः",
-          "iast": "tatrāpaśyatsthitānpārthaḥ"
         }
       ],
       "syllables": 43,

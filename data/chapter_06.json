@@ -394,12 +394,21 @@
       "entry": [
         {
           "startTime": "731.559",
+          "endTime": "736.000",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "सुहृन्मित्रार्युदासीन-",
+          "iast": "suhṛnmitrāryudāsīna-"
+        },
+        {
+          "startTime": "736.000",
           "endTime": "740.454",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": "",
-          "text": "सुहृन्मित्रार्युदासीनमध्यस्थद्वेष्यबन्धुषु |",
-          "iast": "suhṛnmitrāryudāsīnamadhyasthadvēṣyabandhuṣu |"
+          "text": "मध्यस्थद्वेष्यबन्धुषु |",
+          "iast": "madhyasthadvēṣyabandhuṣu |"
         },
         {
           "startTime": "752.509",
@@ -633,24 +642,6 @@
           "sty": "",
           "text": "युक्त  आसीत  मत्परः ||14||",
           "iast": "yukta  āsīta  matparaḥ ||14||"
-        },
-        {
-          "startTime": "1196.38",
-          "endTime": "1201.41",
-          "swhtsp": "p",
-          "shlNbr": "00",
-          "sty": "",
-          "text": "प्रशान्तात्मा  विगतभीः",
-          "iast": "praśāntātmā  vigatabhīḥ"
-        },
-        {
-          "startTime": "1216.89",
-          "endTime": "1222.07",
-          "swhtsp": "p",
-          "shlNbr": "00",
-          "sty": "",
-          "text": "प्रशान्तात्मा  विगतभीः",
-          "iast": "praśāntātmā  vigatabhīḥ"
         }
       ],
       "syllables": 48,
@@ -995,15 +986,6 @@
           "sty": "",
           "text": "गुरुणापि  विचाल्यते ||22||",
           "iast": "guruṇāpi  vicālyatē ||22||"
-        },
-        {
-          "startTime": "1874.29",
-          "endTime": "1878.43",
-          "swhtsp": "p",
-          "shlNbr": "22",
-          "sty": "",
-          "text": "यस्मिन्स्थितो  न  दुःखेन",
-          "iast": "yasminsthitō  na  duḥkhēna"
         }
       ],
       "syllables": 41,

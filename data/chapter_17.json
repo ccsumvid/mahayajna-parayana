@@ -110,15 +110,6 @@
           "iast": "trividhā  bhavati  śraddhā"
         },
         {
-          "startTime": "132.336",
-          "endTime": "136.133",
-          "swhtsp": "l",
-          "shlNbr": "00",
-          "sty": "",
-          "text": "श्री  भगवान्  उवाच  -",
-          "iast": "śrī  bhagavān  uvāca  -"
-        },
-        {
           "startTime": "141.113",
           "endTime": "145.433",
           "swhtsp": "l",
@@ -369,12 +360,21 @@
       "entry": [
         {
           "startTime": "584.333",
+          "endTime": "588.300",
+          "swhtsp": "p",
+          "shlNbr": "00",
+          "sty": "",
+          "text": "आयुःसत्त्वबलारोग्य-",
+          "iast": "āyuḥsattvabalārōgya-"
+        },
+        {
+          "startTime": "588.300",
           "endTime": "592.336",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": "",
-          "text": "आयुःसत्त्वबलारोग्य-सुखप्रीतिविवर्धनाः |",
-          "iast": "āyuḥsattvabalārōgya-sukhaprītivivardhanāḥ |"
+          "text": "सुखप्रीतिविवर्धनाः |",
+          "iast": "sukhaprītivivardhanāḥ |"
         },
         {
           "startTime": "602.462",
