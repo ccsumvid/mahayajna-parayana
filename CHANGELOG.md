@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.10.4] - 2026-06-17
+
+### Fixed
+- **Uvāca speaker-label pause** (#26): every speaker label (arjuna uvāca -, śrī bhagavānuvāca -, sañjaya uvāca -, dhṛtarāṣṭra uvāca -) now pauses **2 mātrās** (one guru) at the line end before the verse begins, across all sections. Replaces the v0.10.2 behavior where labels flowed into the verse with no pause, which the tester reported as breaking the parayana flow.
+
 ## [0.10.3] - 2026-06-16
 
 Parayana QA issue #27 (sloka line structure) re-fix.
