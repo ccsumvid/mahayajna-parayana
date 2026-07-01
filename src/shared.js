@@ -576,7 +576,7 @@ const dataLayer = (function() {
   let currentChapterId = null;
   const cache = {}; // chapterId -> parsed JSON data
 
-  function groupIntoPages(shlokas) {
+  function groupIntoPages(shlokas, chapterLineEndPause) {
     const result = [];
 
     for (const shloka of shlokas) {
@@ -596,7 +596,11 @@ const dataLayer = (function() {
           shlokaNum: shloka.shlokaNum,
           lines: regularEntries.map(e => ({ text: e.text, iast: e.iast || '', swhtsp: e.swhtsp, sty: e.sty, cont: e.cont, pauseBeats: e.pauseBeats })),
           isHeader: false,
-          meter: shloka.meter
+          meter: shloka.meter,
+          // Per-chapter verse line-end pause override (#44 Gita Mahatmyam 2.5 mātrās).
+          lineEndPauseBeats: (typeof chapterLineEndPause === 'number' ? chapterLineEndPause : undefined),
+          // Per-slide tempo offset in internal bpm (#46 Samarpana slide 4: -40 = -10 SPM).
+          bpmOffset: (typeof shloka.bpmOffset === 'number' ? shloka.bpmOffset : undefined)
         };
         // Colophon ("|| ōṃ tatsaditi ...") — leading || distinguishes it from
         // verse 17.23, which also begins with "ōṃ tatsaditi".
@@ -651,7 +655,7 @@ const dataLayer = (function() {
     const data = await loadChapterData(id);
     currentChapterId = id;
     chapterName = data.name || '';
-    pages = groupIntoPages(data.shloka || []);
+    pages = groupIntoPages(data.shloka || [], data.lineEndPauseBeats);
 
     // Prefetch next chapter in background
     var idx = CHAPTER_ORDER.indexOf(id);
@@ -709,12 +713,14 @@ const renderer = (function() {
   //   headerPauseBeats — pause after each header line (separate from verse lines, #36.1)
   //   anustubhBeats / tristubhBeats — meter-aware verse line-end pause (#20/#21; tristubh 4.5 per #36.2)
   // A page line may also carry an explicit `pauseBeats` that overrides the meter default (#36.3).
-  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 3, tristubhBeats: 4.5 };
+  //   uvacaPauseBeats — pause after each "uvāca" speaker label (#39; default 4)
+  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 3, tristubhBeats: 4.5, uvacaPauseBeats: 4 };
   function setPaceConfig(cfg) {
     if (!cfg) return;
     if (typeof cfg.headerPauseBeats === 'number') paceConfig.headerPauseBeats = cfg.headerPauseBeats;
     if (typeof cfg.anustubhBeats === 'number') paceConfig.anustubhBeats = cfg.anustubhBeats;
     if (typeof cfg.tristubhBeats === 'number') paceConfig.tristubhBeats = cfg.tristubhBeats;
+    if (typeof cfg.uvacaPauseBeats === 'number') paceConfig.uvacaPauseBeats = cfg.uvacaPauseBeats;
   }
 
   // Double-buffer: render next page into the hidden buffer, swap on advance
@@ -869,11 +875,14 @@ const renderer = (function() {
         if (!elements[i].classList.contains('verse-marker')) {
           elements[i].dataset.lineEnd = '1';
           if (isUvaca) {
-            // Uvāca speaker label end: 2 mātrās (one guru).
-            elements[i].dataset.lineEndPauseBeats = '2';
+            // Uvāca speaker label end: configurable pause (#39, default 4 mātrās).
+            elements[i].dataset.lineEndPauseBeats = String(paceConfig.uvacaPauseBeats);
           } else if (typeof line.pauseBeats === 'number') {
             // Explicit per-line override (e.g. Samarpana repeated invocation, #36.3).
             elements[i].dataset.lineEndPauseBeats = String(line.pauseBeats);
+          } else if (typeof pageData.lineEndPauseBeats === 'number') {
+            // Per-chapter line-end pause override (e.g. Gita Mahatmyam 2.5 mātrās, #44).
+            elements[i].dataset.lineEndPauseBeats = String(pageData.lineEndPauseBeats);
           } else {
             // Meter-aware line-end pause (Issues #20/#21), configurable via the
             // operator settings: triṣṭubh (default 4.5) vs anuṣṭubh (default 3).
