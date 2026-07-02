@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.12.2] - 2026-07-01
+
+### Fixed
+- **macOS app still crashed on GUI launch in 0.12.1** — `mac.identity: null` made electron-builder skip signing entirely, leaving the bundle unsigned, and Apple Silicon refuses to launch an unsigned `.app` via Finder. Added a `build/afterPack.js` hook that **deep ad-hoc signs** the bundle during the build (before the DMG is packaged), so the app launches after the normal Gatekeeper approval. Added `scripts/launch-mac.sh` (clears quarantine + opens) for local testing.
+
 ## [0.12.1] - 2026-07-01
 
 ### Fixed
