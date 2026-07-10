@@ -782,10 +782,10 @@ const renderer = (function() {
 
       if (pageData.isHeader) {
         if (line.sty === 'fh') {
-          lineDiv.style.color = '#FFD700';
+          lineDiv.style.color = 'var(--active, #FFD700)';
           lineDiv.style.fontSize = '3vw';
         } else if (line.sty === 'sh') {
-          lineDiv.style.color = '#fff';
+          lineDiv.style.color = 'var(--fg, #fff)';
           lineDiv.style.fontSize = '2.5vw';
         }
 
