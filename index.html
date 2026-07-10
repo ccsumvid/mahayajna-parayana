@@ -494,7 +494,7 @@ const EMBEDDED_DHYANA = {
       ]
     },
     {
-      "shlokaNum": "8",
+      "shlokaNum": "8","bpmOffset":40,
       "meter": "tristubh",
       "entry": [
         {"startTime":"236.251","endTime":"244.280","swhtsp":"l","shlNbr":"00","sty":"","text":"शान्ताकारं  भुजगशयनं","iast":"śāntākāraṃ  bhujagaśayanaṃ"},
@@ -990,8 +990,10 @@ const dataLayer = (function() {
           lines: regularEntries.map(e => ({ text: e.text, iast: e.iast || '', swhtsp: e.swhtsp, sty: e.sty, cont: e.cont, pauseBeats: e.pauseBeats })),
           isHeader: false,
           meter: shloka.meter,
-          // Per-chapter verse line-end pause override (#44 Gita Mahatmyam 2.5 mātrās).
-          lineEndPauseBeats: (typeof chapterLineEndPause === 'number' ? chapterLineEndPause : undefined)
+          // Per-chapter verse line-end pause override (#44 Gita Mahatmyam).
+          lineEndPauseBeats: (typeof chapterLineEndPause === 'number' ? chapterLineEndPause : undefined),
+          // Per-slide tempo offset (#46) — e.g. Samarpana sloka-4 slides −20, Dhyana sloka 8 +40.
+          bpmOffset: (typeof shloka.bpmOffset === 'number' ? shloka.bpmOffset : undefined)
         };
         // Colophon ("|| ōṃ tatsaditi ...") — leading || distinguishes it from
         // verse 17.23, which also begins with "ōṃ tatsaditi".
@@ -1679,9 +1681,13 @@ const ui = (function() {
     updatePageInfo();
     syncShlokaDropdown();
 
-    // tempo sheet: slow colophon ("om tatsaditi") / ending pages by 5 SPM (20 internal bpm).
-    // Restore the chapter base tempo when leaving a colophon page.
-    if (page && page.isCloser) {
+    // tempo sheet: per-slide data offset (#46) first (e.g. Samarpana sloka-4 −20,
+    // Dhyana sloka-8 +40 = fixed 70 BPM at the 60 default), else slow colophon
+    // ("om tatsaditi") pages by 20 internal bpm. Restore the base when leaving.
+    if (page && typeof page.bpmOffset === 'number') {
+      animator.setBpm(Math.max(40, currentChapterBpm + page.bpmOffset));
+      closerSlowApplied = true;
+    } else if (page && page.isCloser) {
       animator.setBpm(currentChapterBpm - COLOPHON_BPM_DROP);
       closerSlowApplied = true;
     } else if (closerSlowApplied) {

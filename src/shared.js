@@ -101,7 +101,7 @@ const EMBEDDED_DHYANA = {
       ]
     },
     {
-      "shlokaNum": "8",
+      "shlokaNum": "8","bpmOffset":40,
       "meter": "tristubh",
       "entry": [
         {"startTime":"236.251","endTime":"244.280","swhtsp":"l","shlNbr":"00","sty":"","text":"शान्ताकारं  भुजगशयनं","iast":"śāntākāraṃ  bhujagaśayanaṃ"},
