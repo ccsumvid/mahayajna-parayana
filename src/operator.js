@@ -503,8 +503,18 @@
       document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.remove('selected'); });
       btn.classList.add('selected');
       currentDisplayMode = btn.dataset.mode;
+      // #8: element indices differ between display modes (asterisk = per syllable,
+      // english = per line), so carry the pointer across the re-render as a fraction
+      // of its line — index + sub-element progress in, index + residual progress out.
+      // Round trips are exact and playback continues from the same point.
       var state = animator.getState();
+      var linePos = renderer.getLinePosition(state.currentIndex, state.progress);
       renderer.setMode(currentDisplayMode);
+      if (state.currentIndex >= 0 && linePos) {
+        var mapped = renderer.mapLinePosition(linePos);
+        state.currentIndex = mapped.index;
+        state.progress = mapped.progress;
+      }
       animator.restore(state);
       sendToProjector('display-mode', { mode: currentDisplayMode });
       // Re-announce the active syllable so the projector pointer snaps to the right position
@@ -514,7 +524,7 @@
         var reElems = renderer.getSyllableElements();
         var reEl = reElems[restoredState.currentIndex];
         var reBeats = reEl ? (parseInt(reEl.dataset.beats, 10) || 1) : 1;
-        sendToProjector('syllable-update', { index: restoredState.currentIndex, state: 'active', beatMs: reBeatMs, durationMs: reBeats * reBeatMs });
+        sendToProjector('syllable-update', { index: restoredState.currentIndex, state: 'active', beatMs: reBeatMs, durationMs: reBeats * reBeatMs, progress: restoredState.progress });
       }
     });
   });
