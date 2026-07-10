@@ -32,19 +32,23 @@
   var pointer = document.getElementById('pointer');
   var lastPointerLine = -1; // track which line the pointer is on for line-change detection
 
-  function positionPointerAbove(el, beatMs, durationMs) {
+  function positionPointerAbove(el, beatMs, durationMs, progress) {
     var rect = el.getBoundingClientRect();
     var newTop = (rect.top - 40) + 'px';
     var isEnglish = renderer.getMode() === 'english';
+    // Carried fractional progress within the element (#8): after a display-mode
+    // toggle the hand must resume MID-element — an english line is a whole pāda,
+    // so starting the sweep at its left edge reads as a position reset.
+    var frac = (progress > 0 && progress < 1) ? progress : 0;
 
     if (isEnglish && durationMs) {
-      // English mode: snap to left edge of element, sweep to right over full duration
+      // English mode: snap to the carried position, sweep the REMAINDER of the line
       pointer.style.transition = 'none';
-      pointer.style.left = (rect.left - 18) + 'px';
+      pointer.style.left = (rect.left + frac * rect.width - 18) + 'px';
       pointer.style.top = newTop;
       pointer.style.display = 'block';
       pointer.offsetWidth; // force reflow — commits snap before sweep starts
-      pointer.style.transition = 'left ' + (durationMs / 1000) + 's linear';
+      pointer.style.transition = 'left ' + ((durationMs * (1 - frac)) / 1000) + 's linear';
       pointer.style.left = (rect.right - 18) + 'px';
       lastPointerLine = rect.top;
       return;
@@ -79,7 +83,7 @@
       }
     }
 
-    var glideMs = durationMs || beatMs || 200;
+    var glideMs = (durationMs || beatMs || 200) * (1 - frac);
     if (nextSameLineEl) {
       // Glide toward center of next syllable on this line
       var nr = nextSameLineEl.getBoundingClientRect();
@@ -102,8 +106,15 @@
     var elems = renderer.getSyllableElements();
     if (data.index >= 0 && data.index < elems.length) {
       if (data.state === 'active') {
+        // Backfill 'done' on everything before the active syllable — after a
+        // display-mode re-render (#8) only the active index is re-announced, and
+        // the invariant "everything before the active syllable is done" always holds.
+        for (var b = 0; b < data.index; b++) {
+          elems[b].classList.remove('active');
+          elems[b].classList.add('done');
+        }
         elems[data.index].classList.add('active');
-        positionPointerAbove(elems[data.index], data.beatMs, data.durationMs);
+        positionPointerAbove(elems[data.index], data.beatMs, data.durationMs, data.progress);
       } else if (data.state === 'done') {
         elems[data.index].classList.remove('active');
         elems[data.index].classList.add('done');

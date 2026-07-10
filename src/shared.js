@@ -9,7 +9,7 @@
 const EMBEDDED_DHYANA = {
   "name": "गीता  ध्यान  श्लोकाः",
   "chapterNum": "00",
-  "defaultBpm": 300,
+  "defaultBpm": 240,
   "shloka": [
     {
       "shlokaNum": "",
@@ -101,7 +101,7 @@ const EMBEDDED_DHYANA = {
       ]
     },
     {
-      "shlokaNum": "8",
+      "shlokaNum": "8","bpmOffset":40,
       "meter": "tristubh",
       "entry": [
         {"startTime":"236.251","endTime":"244.280","swhtsp":"l","shlNbr":"00","sty":"","text":"शान्ताकारं  भुजगशयनं","iast":"śāntākāraṃ  bhujagaśayanaṃ"},
@@ -742,7 +742,14 @@ const renderer = (function() {
   //   anustubhBeats / tristubhBeats — meter-aware verse line-end pause (#20/#21; tristubh 4.5 per #36.2)
   // A page line may also carry an explicit `pauseBeats` that overrides the meter default (#36.3).
   //   uvacaPauseBeats — pause after each "uvāca" speaker label (#39; default 4)
-  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 3, tristubhBeats: 4.5, uvacaPauseBeats: 4 };
+  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 2 };
+  // Per-section line-pause overrides (team pacing table): Dhyana ('0') and Invocation
+  // Prayers use gentler pauses (anuṣṭubh 1.5 / triṣṭubh 2.5); everything else uses
+  // the paceConfig defaults above.
+  const SECTION_PAUSE_OVERRIDES = {
+    '0':                { anustubhBeats: 1.5, tristubhBeats: 2.5 },
+    invocation_prayers: { anustubhBeats: 1.5, tristubhBeats: 2.5 }
+  };
   function setPaceConfig(cfg) {
     if (!cfg) return;
     if (typeof cfg.headerPauseBeats === 'number') paceConfig.headerPauseBeats = cfg.headerPauseBeats;
@@ -916,7 +923,10 @@ const renderer = (function() {
             // operator settings: triṣṭubh (default 4.5) vs anuṣṭubh (default 3).
             // Dhyana (chapter '0') carries per-shloka meter too, so it uses the
             // same rule (no flat-3 special case).
-            var lineEndBeats = (pageData.meter === 'tristubh' ? paceConfig.tristubhBeats : paceConfig.anustubhBeats);
+            var sectionOv = SECTION_PAUSE_OVERRIDES[dataLayer.getCurrentChapterId()];
+            var lineEndBeats = (pageData.meter === 'tristubh'
+              ? (sectionOv ? sectionOv.tristubhBeats : paceConfig.tristubhBeats)
+              : (sectionOv ? sectionOv.anustubhBeats : paceConfig.anustubhBeats));
             elements[i].dataset.lineEndPauseBeats = String(lineEndBeats);
           }
           break;
@@ -924,6 +934,19 @@ const renderer = (function() {
       }
 
       target.appendChild(lineDiv);
+    }
+
+    // Stamp a mode-independent line number on every element (#8): element indices
+    // differ between display modes (asterisk = one span per syllable, english = one
+    // span per line), so the pointer position is mapped across a mode switch by
+    // (line, fraction-within-line) instead of by raw index. Elements of a line are
+    // contiguous, so group by parent lineDiv.
+    var lineDivs = [];
+    for (let i = 0; i < elements.length; i++) {
+      var lpar = elements[i].parentElement;
+      var lnum = lineDivs.indexOf(lpar);
+      if (lnum === -1) { lineDivs.push(lpar); lnum = lineDivs.length - 1; }
+      elements[i].dataset.lineNum = String(lnum);
     }
 
     return elements;
@@ -1047,6 +1070,45 @@ const renderer = (function() {
     return syllableElements;
   }
 
+  // Cross-mode pointer mapping (#8). Element indices differ between display modes
+  // (asterisk = one span per syllable, english = one span per line), so a position is
+  // carried across a re-render as a mode-independent FRACTION of its line:
+  //   getLinePosition(index, progress) → { line, fine } where fine ∈ [0,1) is
+  //     (elements consumed within the line + progress through the current element)
+  //     ÷ (elements in the line). `progress` is animator.getState().progress.
+  //   mapLinePosition(pos) → { index, progress } — the element in the NEW render at
+  //     that fraction, plus the residual progress within it. Round trips are exact.
+  function getLinePosition(index, progress) {
+    if (index < 0 || index >= syllableElements.length) return null;
+    var ln = parseInt(syllableElements[index].dataset.lineNum, 10) || 0;
+    var first = -1, count = 0;
+    for (var i = 0; i < syllableElements.length; i++) {
+      if ((parseInt(syllableElements[i].dataset.lineNum, 10) || 0) === ln) {
+        if (first === -1) first = i;
+        count++;
+      }
+    }
+    var p = (progress > 0 && progress < 1) ? progress : 0;
+    return { line: ln, fine: ((index - first) + p) / count };
+  }
+  function mapLinePosition(pos) {
+    if (!pos || !syllableElements.length) return { index: -1, progress: 0 };
+    var first = -1, count = 0;
+    for (var i = 0; i < syllableElements.length; i++) {
+      if ((parseInt(syllableElements[i].dataset.lineNum, 10) || 0) === pos.line) {
+        if (first === -1) first = i;
+        count++;
+      }
+    }
+    if (first === -1) return { index: syllableElements.length - 1, progress: 0 }; // line missing — clamp
+    var scaled = Math.max(0, Math.min(count - 1e-9, (pos.fine || 0) * count));
+    var off = Math.floor(scaled);
+    var idx = first + off;
+    // Never land on a danda marker — settle on the preceding syllable of the line.
+    while (idx > first && syllableElements[idx].classList.contains('verse-marker')) idx--;
+    return { index: idx, progress: idx === first + off ? scaled - off : 0 };
+  }
+
   return {
     renderPage: renderPage,
     prefetchPage: prefetchPage,
@@ -1055,6 +1117,8 @@ const renderer = (function() {
     setMode: setMode,
     setPaceConfig: setPaceConfig,
     getSyllableElements: getSyllableElements,
+    getLinePosition: getLinePosition,
+    mapLinePosition: mapLinePosition,
     getMode: function() { return currentMode; }
   };
 })();
@@ -1067,6 +1131,11 @@ const animator = (function() {
 
   let isPlaying = false;
   let currentIndex = -1;
+  // Progress through the current element, for cross-mode position mapping (#8):
+  // stamped when an element activates; frozen on pause; carried in via restore().
+  let elementStartedAt = 0;
+  let elementDurationMs = 0;
+  let frozenProgress = 0;
   let timeoutId = null;
   let bpm = 380; // internal beats; displayed as whole notes (bpm/4), default 95
   // Fallback default when a line-end element carries no dataset.lineEndPauseBeats.
@@ -1099,7 +1168,17 @@ const animator = (function() {
     advance();
   }
 
+  function currentProgress() {
+    if (currentIndex < 0) return 0;
+    // Paused: report the carried/frozen progress even if nothing has played yet
+    // this session (elementDurationMs is only stamped by advance()).
+    if (!isPlaying) return frozenProgress;
+    if (!elementDurationMs) return 0;
+    return Math.max(0, Math.min(1, (Date.now() - elementStartedAt) / elementDurationMs));
+  }
+
   function pause() {
+    frozenProgress = currentProgress();
     isPlaying = false;
     if (timeoutId) {
       clearTimeout(timeoutId);
@@ -1117,6 +1196,9 @@ const animator = (function() {
       elems[i].classList.remove('done');
     }
     currentIndex = -1;
+    elementStartedAt = 0;
+    elementDurationMs = 0;
+    frozenProgress = 0;
     hidePointer();
   }
 
@@ -1170,6 +1252,9 @@ const animator = (function() {
     // beats. parseFloat because averaged beats can be fractional.
     const beats = parseFloat(el.dataset.beats) || 1;
     const durationMs = beats * getBeatMs();
+    elementStartedAt = Date.now();
+    elementDurationMs = durationMs;
+    frozenProgress = 0;
 
     // Find the next non-marker syllable
     var nextIdx = currentIndex + 1;
@@ -1262,7 +1347,7 @@ const animator = (function() {
   }
 
   function getState() {
-    return { isPlaying: isPlaying, currentIndex: currentIndex, bpm: bpm };
+    return { isPlaying: isPlaying, currentIndex: currentIndex, bpm: bpm, progress: currentProgress() };
   }
 
   function restore(state) {
@@ -1283,6 +1368,26 @@ const animator = (function() {
       }
     }
 
+    // Carry the caller's sub-element progress (#8) so a later getState()/toggle
+    // still knows the within-line position while paused.
+    frozenProgress = (state.progress > 0 && state.progress < 1) ? state.progress : 0;
+
+    // Visual: place the hand at the carried fractional position WITHIN the element —
+    // an english line spans a whole pāda, so leaving the hand at its left edge/center
+    // reads as a reset to the pāda start (#8).
+    var carriedP = frozenProgress;
+    if (currentIndex >= 0 && carriedP > 0) {
+      var curEl = elems[currentIndex];
+      if (curEl && !(curEl.dataset && curEl.dataset.noPointer)) {
+        var cRect = curEl.getBoundingClientRect();
+        pointer.style.transition = 'none';
+        pointer.style.display = 'block';
+        pointer.style.left = (cRect.left + carriedP * cRect.width - 18) + 'px';
+        pointer.style.top = (cRect.top - 40) + 'px';
+        pointer.offsetWidth;
+      }
+    }
+
     // Resume playing if it was playing
     if (state.isPlaying && currentIndex >= 0) {
       isPlaying = true;
@@ -1291,7 +1396,35 @@ const animator = (function() {
       var beats = parseFloat(elems[currentIndex].dataset.beats) || 1;
       var lp = parseFloat(elems[currentIndex].dataset.lineEndPauseBeats);
       var lineEndPause = elems[currentIndex].dataset.lineEnd ? (lp > 0 ? lp : LINE_END_PAUSE_BEATS) : 0;
-      timeoutId = setTimeout(advance, (beats + lineEndPause) * getBeatMs());
+      var totalMs = (beats + lineEndPause) * getBeatMs();
+      // Resume from the carried progress instead of restarting the element: the
+      // element's remaining time (and thus the group's pace) is preserved.
+      var resumeFrom = frozenProgress;
+      elementStartedAt = Date.now() - resumeFrom * (beats * getBeatMs());
+      elementDurationMs = beats * getBeatMs();
+      frozenProgress = 0;
+      timeoutId = setTimeout(advance, Math.max(50, totalMs * (1 - resumeFrom)));
+      // Recreate the forward sweep/glide for the REMAINDER of the element, from the
+      // carried position (advance() only creates it at element activation).
+      var runEl = elems[currentIndex];
+      if (runEl && !(runEl.dataset && runEl.dataset.noPointer)) {
+        var speakMs = Math.max(50, beats * getBeatMs() * (1 - resumeFrom));
+        var rRect = runEl.getBoundingClientRect();
+        var resumeIdx = currentIndex;
+        requestAnimationFrame(function() {
+          if (renderer.getMode() === 'english') {
+            pointer.style.transition = 'left ' + (speakMs / 1000) + 's linear';
+            pointer.style.left = (rRect.right - 18) + 'px';
+          } else {
+            var nIdx = resumeIdx + 1;
+            while (nIdx < elems.length && elems[nIdx].classList.contains('verse-marker')) nIdx++;
+            if (nIdx < elems.length) {
+              var nRect = elems[nIdx].getBoundingClientRect();
+              if (Math.abs(nRect.top - rRect.top) < 15) positionPointer(elems[nIdx], speakMs);
+            }
+          }
+        });
+      }
     } else if (currentIndex < 0) {
       hidePointer();
     }

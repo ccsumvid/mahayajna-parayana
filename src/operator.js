@@ -16,9 +16,9 @@
     chapterGapSeconds: 3,    // gap between chapters before the countdown
     verseZoom: 100,          // projector verse-text zoom (%) — #34
     headerPauseBeats: 3,     // pause (mātrās) after each header line — #36.1
-    anustubhBeats: 3,        // anuṣṭubh verse line-end pause (mātrās) — #36.2
-    tristubhBeats: 4.5,      // triṣṭubh verse line-end pause (mātrās) — #36.2
-    uvacaPauseBeats: 4,      // pause after each uvāca speaker label (mātrās) — #39
+    anustubhBeats: 2,        // anuṣṭubh verse line-end pause (mātrās) — team pacing table
+    tristubhBeats: 3,        // triṣṭubh verse line-end pause (mātrās) — team pacing table
+    uvacaPauseBeats: 2,      // pause after each uvāca speaker label (mātrās) — team pacing table
     colophonPauseSeconds: 2, // pause before the colophon ("om tatsaditi") slide — #41
     sarvadharmanPauseBeats: 3, // pause between colophon and sarvadharmān slide (mātrās) — #40
     headerBpmDrop: 20,       // internal bpm drop on header slides (= 5 SPM), all chapters — #47
@@ -503,8 +503,18 @@
       document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.remove('selected'); });
       btn.classList.add('selected');
       currentDisplayMode = btn.dataset.mode;
+      // #8: element indices differ between display modes (asterisk = per syllable,
+      // english = per line), so carry the pointer across the re-render as a fraction
+      // of its line — index + sub-element progress in, index + residual progress out.
+      // Round trips are exact and playback continues from the same point.
       var state = animator.getState();
+      var linePos = renderer.getLinePosition(state.currentIndex, state.progress);
       renderer.setMode(currentDisplayMode);
+      if (state.currentIndex >= 0 && linePos) {
+        var mapped = renderer.mapLinePosition(linePos);
+        state.currentIndex = mapped.index;
+        state.progress = mapped.progress;
+      }
       animator.restore(state);
       sendToProjector('display-mode', { mode: currentDisplayMode });
       // Re-announce the active syllable so the projector pointer snaps to the right position
@@ -514,7 +524,7 @@
         var reElems = renderer.getSyllableElements();
         var reEl = reElems[restoredState.currentIndex];
         var reBeats = reEl ? (parseInt(reEl.dataset.beats, 10) || 1) : 1;
-        sendToProjector('syllable-update', { index: restoredState.currentIndex, state: 'active', beatMs: reBeatMs, durationMs: reBeats * reBeatMs });
+        sendToProjector('syllable-update', { index: restoredState.currentIndex, state: 'active', beatMs: reBeatMs, durationMs: reBeats * reBeatMs, progress: restoredState.progress });
       }
     });
   });
@@ -694,12 +704,16 @@
 
   // Effective internal BPM for a section: Settings override, else data defaultBpm.
   // Returns null when neither is known (sections without a defaultBpm → "manual").
+  // Internal bpm = display BPM × 4. Defaults per the parayana team's pacing table
+  // (Default pacing.xlsx): Dhyana 60, Ch1 75, Ch2 80, Ch3–15 85, Ch16 80, Ch17–18 75,
+  // Datta Stavam 75, Invocation 65, Mahātmyam 75, Samarpana 75. Keep in sync with
+  // each section's data defaultBpm.
   var DATA_DEFAULT_BPM = {
-    datta_stavam: 360, invocation_prayers: 340, '0': 300, '1': 340,
-    '2': 380, '3': 380, '4': 380, '5': 380, '6': 380, '7': 380, '8': 380,
-    '9': 380, '10': 380, '11': 380, '12': 380, '13': 380, '14': 380,
-    '15': 380, '16': 380, '17': 380, '18': 380, gita_mahatmyam: 380,
-    kshama_prarthana: 320
+    datta_stavam: 300, invocation_prayers: 260, '0': 240, '1': 300,
+    '2': 320, '3': 340, '4': 340, '5': 340, '6': 340, '7': 340, '8': 340,
+    '9': 340, '10': 340, '11': 340, '12': 340, '13': 340, '14': 340,
+    '15': 340, '16': 320, '17': 300, '18': 300, gita_mahatmyam: 300,
+    kshama_prarthana: 300
   };
   function effectiveSectionBpm(id) {
     if (typeof chantSettings.sectionBpm[id] === 'number') return chantSettings.sectionBpm[id];

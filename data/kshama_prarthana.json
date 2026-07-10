@@ -2,7 +2,7 @@
   "name": "samarpaṇa",
   "iastName": "samarpaṇa",
   "chapterNum": "kshama_prarthana",
-  "defaultBpm": 320,
+  "defaultBpm": 300,
   "shloka": [
     {
       "shlokaNum": "1",
@@ -97,7 +97,7 @@
       ],
       "syllables": 57,
       "meter": "tristubh",
-      "bpmOffset": -40
+      "bpmOffset": -20
     },
     {
       "shlokaNum": "4",
@@ -112,7 +112,7 @@
       ],
       "syllables": 12,
       "meter": "tristubh",
-      "bpmOffset": -40
+      "bpmOffset": -20
     },
     {
       "shlokaNum": "6",
