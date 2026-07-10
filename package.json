@@ -39,12 +39,14 @@
       "target": "nsis"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
       "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "runAfterFinish": false
+      "runAfterFinish": true
     }
   },
   "devDependencies": {
