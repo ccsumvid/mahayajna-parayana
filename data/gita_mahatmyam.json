@@ -2,8 +2,8 @@
   "name": "gītāmāhātmyam",
   "iastName": "gītāmāhātmyam",
   "chapterNum": "gita_mahatmyam",
-  "defaultBpm": 380,
-  "lineEndPauseBeats": 2.5,
+  "defaultBpm": 300,
+  "lineEndPauseBeats": 3,
   "shloka": [
     {
       "shlokaNum": "",

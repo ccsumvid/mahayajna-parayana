@@ -9,7 +9,7 @@
 const EMBEDDED_DHYANA = {
   "name": "गीता  ध्यान  श्लोकाः",
   "chapterNum": "00",
-  "defaultBpm": 300,
+  "defaultBpm": 240,
   "shloka": [
     {
       "shlokaNum": "",
@@ -742,7 +742,14 @@ const renderer = (function() {
   //   anustubhBeats / tristubhBeats — meter-aware verse line-end pause (#20/#21; tristubh 4.5 per #36.2)
   // A page line may also carry an explicit `pauseBeats` that overrides the meter default (#36.3).
   //   uvacaPauseBeats — pause after each "uvāca" speaker label (#39; default 4)
-  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 3, tristubhBeats: 4.5, uvacaPauseBeats: 4 };
+  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 2 };
+  // Per-section line-pause overrides (team pacing table): Dhyana ('0') and Invocation
+  // Prayers use gentler pauses (anuṣṭubh 1.5 / triṣṭubh 2.5); everything else uses
+  // the paceConfig defaults above.
+  const SECTION_PAUSE_OVERRIDES = {
+    '0':                { anustubhBeats: 1.5, tristubhBeats: 2.5 },
+    invocation_prayers: { anustubhBeats: 1.5, tristubhBeats: 2.5 }
+  };
   function setPaceConfig(cfg) {
     if (!cfg) return;
     if (typeof cfg.headerPauseBeats === 'number') paceConfig.headerPauseBeats = cfg.headerPauseBeats;
@@ -916,7 +923,10 @@ const renderer = (function() {
             // operator settings: triṣṭubh (default 4.5) vs anuṣṭubh (default 3).
             // Dhyana (chapter '0') carries per-shloka meter too, so it uses the
             // same rule (no flat-3 special case).
-            var lineEndBeats = (pageData.meter === 'tristubh' ? paceConfig.tristubhBeats : paceConfig.anustubhBeats);
+            var sectionOv = SECTION_PAUSE_OVERRIDES[dataLayer.getCurrentChapterId()];
+            var lineEndBeats = (pageData.meter === 'tristubh'
+              ? (sectionOv ? sectionOv.tristubhBeats : paceConfig.tristubhBeats)
+              : (sectionOv ? sectionOv.anustubhBeats : paceConfig.anustubhBeats));
             elements[i].dataset.lineEndPauseBeats = String(lineEndBeats);
           }
           break;
