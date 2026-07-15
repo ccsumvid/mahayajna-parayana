@@ -744,7 +744,7 @@ const renderer = (function() {
   //   anustubhBeats / tristubhBeats — meter-aware verse line-end pause (#20/#21; tristubh 4.5 per #36.2)
   // A page line may also carry an explicit `pauseBeats` that overrides the meter default (#36.3).
   //   uvacaPauseBeats — pause after each "uvāca" speaker label (#39; default 4)
-  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 2 };
+  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3 };
   // Per-section line-pause overrides (team pacing table): Dhyana ('0') and Invocation
   // Prayers use gentler pauses (anuṣṭubh 1.5 / triṣṭubh 2.5); everything else uses
   // the paceConfig defaults above.
