@@ -1219,7 +1219,7 @@ const renderer = (function() {
           elements[i].dataset.lineEnd = '1';
           if (isUvaca) {
             // Uvāca speaker label end: 2 mātrās (team pacing table).
-            elements[i].dataset.lineEndPauseBeats = '2';
+            elements[i].dataset.lineEndPauseBeats = '3';
           } else if (typeof line.pauseBeats === 'number') {
             // Explicit per-line override (e.g. Samarpana repeated invocation, #36.3).
             elements[i].dataset.lineEndPauseBeats = String(line.pauseBeats);

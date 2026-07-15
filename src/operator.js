@@ -18,10 +18,10 @@
     headerPauseBeats: 3,     // pause (mātrās) after each header line — #36.1
     anustubhBeats: 2,        // anuṣṭubh verse line-end pause (mātrās) — team pacing table
     tristubhBeats: 3,        // triṣṭubh verse line-end pause (mātrās) — team pacing table
-    uvacaPauseBeats: 2,      // pause after each uvāca speaker label (mātrās) — team pacing table
+    uvacaPauseBeats: 3,      // pause after each uvāca speaker label (mātrās) — team table 2026-07-15
     colophonPauseSeconds: 2, // pause before the colophon ("om tatsaditi") slide — #41
     sarvadharmanPauseBeats: 3, // pause between colophon and sarvadharmān slide (mātrās) — #40
-    headerBpmDrop: 20,       // internal bpm drop on header slides (= 5 SPM), all chapters — #47
+    headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
     theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
     sectionBpm: {},          // chapterId -> internal BPM override; empty = use data defaultBpm
     enabledSections: []      // chapters to chant this parayana (#34); empty = ALL (regular parayana)
@@ -742,10 +742,10 @@
   // Datta Stavam 75, Invocation 65, Mahātmyam 75, Samarpana 75. Keep in sync with
   // each section's data defaultBpm.
   var DATA_DEFAULT_BPM = {
-    datta_stavam: 300, invocation_prayers: 260, '0': 240, '1': 300,
+    datta_stavam: 320, invocation_prayers: 260, '0': 240, '1': 300,
     '2': 320, '3': 340, '4': 340, '5': 340, '6': 340, '7': 340, '8': 340,
     '9': 340, '10': 340, '11': 340, '12': 340, '13': 340, '14': 340,
-    '15': 340, '16': 320, '17': 300, '18': 300, gita_mahatmyam: 300,
+    '15': 340, '16': 340, '17': 340, '18': 340, gita_mahatmyam: 320,
     kshama_prarthana: 300
   };
   function effectiveSectionBpm(id) {
