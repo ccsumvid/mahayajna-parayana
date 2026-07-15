@@ -23,6 +23,8 @@
     sarvadharmanPauseBeats: 3, // pause between colophon and sarvadharmān slide (mātrās) — #40
     headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
     theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
+    fullscreenText: '',      // announcement text for the full-screen text box
+    breakMinutes: 10,        // break timer duration (minutes)
     sectionBpm: {},          // chapterId -> internal BPM override; empty = use data defaultBpm
     enabledSections: []      // chapters to chant this parayana (#34); empty = ALL (regular parayana)
   };
@@ -41,6 +43,8 @@
       sarvadharmanPauseBeats: CHANT_DEFAULTS.sarvadharmanPauseBeats,
       headerBpmDrop: CHANT_DEFAULTS.headerBpmDrop,
       theme: CHANT_DEFAULTS.theme,
+      fullscreenText: CHANT_DEFAULTS.fullscreenText,
+      breakMinutes: CHANT_DEFAULTS.breakMinutes,
       sectionBpm: {},
       enabledSections: []
     };
@@ -61,6 +65,8 @@
           if (typeof parsed.sarvadharmanPauseBeats === 'number') merged.sarvadharmanPauseBeats = parsed.sarvadharmanPauseBeats;
           if (typeof parsed.headerBpmDrop === 'number') merged.headerBpmDrop = parsed.headerBpmDrop;
           if (parsed.theme === 'dark' || parsed.theme === 'light') merged.theme = parsed.theme;
+          if (typeof parsed.fullscreenText === 'string') merged.fullscreenText = parsed.fullscreenText;
+          if (typeof parsed.breakMinutes === 'number') merged.breakMinutes = parsed.breakMinutes;
           if (parsed.sectionBpm && typeof parsed.sectionBpm === 'object') {
             for (var k in parsed.sectionBpm) {
               if (Object.prototype.hasOwnProperty.call(parsed.sectionBpm, k) && typeof parsed.sectionBpm[k] === 'number') {
@@ -767,6 +773,8 @@
     if (fldColophonPause) fldColophonPause.value = chantSettings.colophonPauseSeconds;
     if (fldSarvaPause) fldSarvaPause.value = chantSettings.sarvadharmanPauseBeats;
     if (fldHeaderBpmDrop) fldHeaderBpmDrop.value = chantSettings.headerBpmDrop;
+    if (fldFsText) fldFsText.value = chantSettings.fullscreenText || '';
+    if (fldBreakMinutes) fldBreakMinutes.value = chantSettings.breakMinutes;
     if (fldTheme) fldTheme.value = chantSettings.theme;
     for (var id in sectionBpmInputs) {
       if (!Object.prototype.hasOwnProperty.call(sectionBpmInputs, id)) continue;
@@ -819,6 +827,8 @@
     if (fldColophonPause) chantSettings.colophonPauseSeconds = clampNum(fldColophonPause.value, 0, 10, CHANT_DEFAULTS.colophonPauseSeconds);
     if (fldSarvaPause) chantSettings.sarvadharmanPauseBeats = clampNum(fldSarvaPause.value, 0, 12, CHANT_DEFAULTS.sarvadharmanPauseBeats);
     if (fldHeaderBpmDrop) chantSettings.headerBpmDrop = Math.round(clampNum(fldHeaderBpmDrop.value, 0, 80, CHANT_DEFAULTS.headerBpmDrop));
+    if (fldFsText) chantSettings.fullscreenText = fldFsText.value;
+    if (fldBreakMinutes) chantSettings.breakMinutes = Math.round(clampNum(fldBreakMinutes.value, 1, 120, CHANT_DEFAULTS.breakMinutes));
     if (fldTheme) chantSettings.theme = (fldTheme.value === 'light') ? 'light' : 'dark';
 
     // Per-section BPM: a value present → store internal = SPM*4; blank → clear override.
@@ -882,6 +892,68 @@
     applyChantSettings();
     refreshSettingsInputs();
   }
+
+  // --- Full-Screen Text Box + Break Timer (standalone; projector overlays) ---
+  // Both are usable only while nothing is playing; if playback starts while one
+  // is showing, it is hidden automatically so it never covers live recitation.
+  var fldFsText = document.getElementById('set-fstext');
+  var fldBreakMinutes = document.getElementById('set-break-minutes');
+  var btnFsShow = document.getElementById('btn-fstext-show');
+  var btnFsHide = document.getElementById('btn-fstext-hide');
+  var btnFsClear = document.getElementById('btn-fstext-clear');
+  var btnBreakStart = document.getElementById('btn-break-start');
+  var btnBreakReset = document.getElementById('btn-break-reset');
+  var fsTextShowing = false;
+  var breakTimerShowing = false;
+
+  btnFsShow.addEventListener('click', function() {
+    if (animator.getState().isPlaying) return;
+    var text = (fldFsText.value || '').trim();
+    if (!text) return;
+    chantSettings.fullscreenText = fldFsText.value;
+    saveChantSettings();
+    sendToProjector('fullscreen-text', { text: text });
+    fsTextShowing = true;
+  });
+  btnFsHide.addEventListener('click', function() {
+    sendToProjector('fullscreen-text', { text: null });
+    fsTextShowing = false;
+  });
+  btnFsClear.addEventListener('click', function() {
+    fldFsText.value = '';
+    chantSettings.fullscreenText = '';
+    saveChantSettings();
+  });
+
+  btnBreakStart.addEventListener('click', function() {
+    if (animator.getState().isPlaying) return;
+    var mins = Math.round(clampNum(fldBreakMinutes.value, 1, 120, CHANT_DEFAULTS.breakMinutes));
+    fldBreakMinutes.value = mins;
+    chantSettings.breakMinutes = mins;
+    saveChantSettings();
+    sendToProjector('break-timer', { action: 'start', seconds: mins * 60 });
+    breakTimerShowing = true;
+  });
+  btnBreakReset.addEventListener('click', function() {
+    sendToProjector('break-timer', { action: 'hide' });
+    breakTimerShowing = false;
+  });
+
+  // Enablement poll: disable triggers during playback; auto-hide overlays if
+  // playback starts while one is up.
+  setInterval(function() {
+    var playing = animator.getState().isPlaying;
+    btnFsShow.disabled = playing;
+    btnBreakStart.disabled = playing;
+    if (playing && fsTextShowing) {
+      sendToProjector('fullscreen-text', { text: null });
+      fsTextShowing = false;
+    }
+    if (playing && breakTimerShowing) {
+      sendToProjector('break-timer', { action: 'hide' });
+      breakTimerShowing = false;
+    }
+  }, 500);
 
   buildSectionBpmRows();
   document.getElementById('btn-settings').addEventListener('click', openSettings);
