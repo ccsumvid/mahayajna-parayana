@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       'countdown', 'display-mode', 'spm-change',
       'show-instruction', 'dismiss-instruction',
       'verse-zoom', 'theme',
+      'fullscreen-text', 'break-timer',
       'open-projector', 'close-projector'
     ];
     if (validChannels.includes(channel)) {
@@ -19,6 +20,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       'countdown', 'display-mode', 'spm-change',
       'show-instruction', 'dismiss-instruction',
       'verse-zoom', 'theme',
+      'fullscreen-text', 'break-timer',
       'projector-status'
     ];
     if (validChannels.includes(channel)) {
