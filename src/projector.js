@@ -114,7 +114,12 @@
           elems[b].classList.add('done');
         }
         elems[data.index].classList.add('active');
-        positionPointerAbove(elems[data.index], data.beatMs, data.durationMs, data.progress);
+        // Static-title header spans carry noPointer — keep the hand hidden.
+        if (elems[data.index].dataset && elems[data.index].dataset.noPointer) {
+          hidePointer();
+        } else {
+          positionPointerAbove(elems[data.index], data.beatMs, data.durationMs, data.progress);
+        }
       } else if (data.state === 'done') {
         elems[data.index].classList.remove('active');
         elems[data.index].classList.add('done');

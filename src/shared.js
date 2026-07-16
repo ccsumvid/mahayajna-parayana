@@ -745,6 +745,10 @@ const renderer = (function() {
   // A page line may also carry an explicit `pauseBeats` that overrides the meter default (#36.3).
   //   uvacaPauseBeats — pause after each "uvāca" speaker label (#39; default 4)
   const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3 };
+  // Sections whose title HEADER slide is a plain static title (text in both
+  // display modes, no pointer). Kept minimal: only the new Pūrṇam / Samarpana
+  // titles — existing section headers keep their current behavior.
+  const STATIC_TITLE_SECTIONS = { purnam: true, kshama_prarthana: true };
   // Per-section line-pause overrides (team pacing table): Dhyana ('0') and Invocation
   // Prayers use gentler pauses (anuṣṭubh 1.5 / triṣṭubh 2.5); everything else uses
   // the paceConfig defaults above.
@@ -797,14 +801,21 @@ const renderer = (function() {
         const hTokens = hAnalyzer.analyzeLine(hAnalyzeText);
         const hLineStart = elements.length;
 
-        if (currentMode !== 'asterisk') {
-          // English mode: one animated span per header line, sweeps left→right
+        // Pūrṇam / Samarpana section title slides: plain static titles — show the
+        // text in BOTH display modes and move no pointer over them (same look as
+        // the Gita Sāram / Ārati titles on the team's build). Closing 'uh' headers
+        // stay animated.
+        const staticTitle = STATIC_TITLE_SECTIONS[dataLayer.getCurrentChapterId()] === true && line.sty !== 'uh';
+
+        if (currentMode !== 'asterisk' || staticTitle) {
+          // English mode (or a static title): one span per header line with the text.
           const displayText = line.iast || line.text;
           const totalBeats = hTokens.reduce((sum, t) => sum + t.beats, 0);
           const span = document.createElement('span');
           span.className = 'syllable';
           span.dataset.index = elements.length;
           span.dataset.beats = Math.max(1, totalBeats);
+          if (staticTitle) span.dataset.noPointer = '1';
           span.textContent = displayText;
           elements.push(span);
           lineDiv.appendChild(span);
@@ -1325,6 +1336,8 @@ const animator = (function() {
   }
 
   function positionPointer(el, transitionMs) {
+    // Static-title header spans carry noPointer — never show the hand on them.
+    if (el && el.dataset && el.dataset.noPointer) { hidePointer(); return; }
     const rect = el.getBoundingClientRect();
     if (transitionMs !== undefined) {
       pointer.style.transition = 'left ' + (transitionMs / 1000) + 's linear, top 0.15s ease-out';
@@ -1335,6 +1348,7 @@ const animator = (function() {
   }
 
   function positionPointerInstant(el) {
+    if (el && el.dataset && el.dataset.noPointer) { hidePointer(); return; }
     pointer.style.transition = 'none';
     const rect = el.getBoundingClientRect();
     pointer.style.display = 'block';
