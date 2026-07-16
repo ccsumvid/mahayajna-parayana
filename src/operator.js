@@ -447,6 +447,7 @@
   // section end -> gap -> title visible -> gap -> countdown -> playback.
   var HEADER_BEFORE_COUNTDOWN = { kshama_prarthana: true, gita_saram: true, gita_arati: true };
   var hardStopDoneFor = null; // chapter we already hard-stopped at (so Play can continue)
+  var chapterTransitionPending = false; // a chapter-end transition (gap/countdown) is already scheduled
 
   // --- Auto-advance: when animator reaches end of page, go to next and resume ---
   animator.setOnAutoAdvance(async function() {
@@ -466,6 +467,14 @@
         return; // stay paused on the last page; the next Play continues onward
       }
 
+      // Re-entry guard: pressing Play while the end-of-chapter transition (gap /
+      // header display / countdown) is already underway fired this handler again
+      // and scheduled a DUPLICATE transition — which then computed "next chapter"
+      // from the newly loaded section and skipped it (e.g. Samarpana jumped
+      // straight to Gita Sāram). One transition at a time.
+      if (chapterTransitionPending) return;
+      chapterTransitionPending = true;
+
       // Inter-chapter gap, then countdown, then play (feedback #5).
       // Issue #29: the countdown ("Listen to Śruti") must precede the chapter's
       // first header line ("Oṃ Śrī Paramātmanē Namaḥ"). Load the next chapter
@@ -474,6 +483,8 @@
       // countdown completes and play begins on page 0 (the fh header).
       var gapMs = chantSettings.chapterGapSeconds * 1000;
       setTimeout(async function() {
+        chapterTransitionPending = false;
+        if (dataLayer.getCurrentChapterId() !== chapterId) return; // operator navigated away meanwhile
         dismissInstruction();
         var nextId = dataLayer.getNextChapterId();
         if (!nextId) return; // no next chapter — stay stopped
