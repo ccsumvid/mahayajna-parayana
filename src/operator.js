@@ -28,6 +28,7 @@
     colophonPauseSeconds: 2, // pause before the colophon ("om tatsaditi") slide — #41
     sarvadharmanPauseBeats: 3, // pause between colophon and sarvadharmān slide (mātrās) — #40
     headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
+    saramAratiCountdown: true, // countdown before Gita Sāram / Ārati recitation (OFF = header -> recitation directly)
     theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
     fullscreenText: '',      // announcement text for the full-screen text box
     breakMinutes: 10,        // break timer duration (minutes)
@@ -48,6 +49,7 @@
       colophonPauseSeconds: CHANT_DEFAULTS.colophonPauseSeconds,
       sarvadharmanPauseBeats: CHANT_DEFAULTS.sarvadharmanPauseBeats,
       headerBpmDrop: CHANT_DEFAULTS.headerBpmDrop,
+      saramAratiCountdown: CHANT_DEFAULTS.saramAratiCountdown,
       theme: CHANT_DEFAULTS.theme,
       fullscreenText: CHANT_DEFAULTS.fullscreenText,
       breakMinutes: CHANT_DEFAULTS.breakMinutes,
@@ -70,6 +72,7 @@
           if (typeof parsed.colophonPauseSeconds === 'number') merged.colophonPauseSeconds = parsed.colophonPauseSeconds;
           if (typeof parsed.sarvadharmanPauseBeats === 'number') merged.sarvadharmanPauseBeats = parsed.sarvadharmanPauseBeats;
           if (typeof parsed.headerBpmDrop === 'number') merged.headerBpmDrop = parsed.headerBpmDrop;
+          if (typeof parsed.saramAratiCountdown === 'boolean') merged.saramAratiCountdown = parsed.saramAratiCountdown;
           if (parsed.theme === 'dark' || parsed.theme === 'light') merged.theme = parsed.theme;
           if (typeof parsed.fullscreenText === 'string') merged.fullscreenText = parsed.fullscreenText;
           if (typeof parsed.breakMinutes === 'number') merged.breakMinutes = parsed.breakMinutes;
@@ -483,7 +486,7 @@
           // let it sit for the chapter gap, THEN countdown, then recitation.
           setTimeout(function() {
             if (dataLayer.getCurrentChapterId() !== nextId) return; // operator navigated away
-            startCountdown(function() {
+            var beginRecitation = function() {
               // Begin recitation DIRECTLY at the first content page — the title
               // already had its display time before the countdown (replaying it
               // here read as "countdown -> header" to the team).
@@ -493,7 +496,13 @@
               if (firstContent < total) showPage(firstContent);
               syncProjectorPage();
               animator.play();
-            });
+            };
+            // Optional countdown skip (Settings) for Gita Sāram / Ārati only:
+            // OFF = header -> recitation directly.
+            var skipCountdown = (nextId === 'gita_saram' || nextId === 'gita_arati') &&
+                                chantSettings.saramAratiCountdown === false;
+            if (skipCountdown) beginRecitation();
+            else startCountdown(beginRecitation);
           }, gapMs);
           return;
         }
@@ -834,6 +843,8 @@
     if (fldColophonPause) fldColophonPause.value = chantSettings.colophonPauseSeconds;
     if (fldSarvaPause) fldSarvaPause.value = chantSettings.sarvadharmanPauseBeats;
     if (fldHeaderBpmDrop) fldHeaderBpmDrop.value = chantSettings.headerBpmDrop;
+    var fldSaramCd = document.getElementById('set-saram-arati-cd');
+    if (fldSaramCd) fldSaramCd.value = chantSettings.saramAratiCountdown ? 'on' : 'off';
     if (fldFsText) fldFsText.value = chantSettings.fullscreenText || '';
     if (fldBreakMinutes) fldBreakMinutes.value = chantSettings.breakMinutes;
     if (fldTheme) fldTheme.value = chantSettings.theme;
@@ -888,6 +899,8 @@
     if (fldColophonPause) chantSettings.colophonPauseSeconds = clampNum(fldColophonPause.value, 0, 10, CHANT_DEFAULTS.colophonPauseSeconds);
     if (fldSarvaPause) chantSettings.sarvadharmanPauseBeats = clampNum(fldSarvaPause.value, 0, 12, CHANT_DEFAULTS.sarvadharmanPauseBeats);
     if (fldHeaderBpmDrop) chantSettings.headerBpmDrop = Math.round(clampNum(fldHeaderBpmDrop.value, 0, 80, CHANT_DEFAULTS.headerBpmDrop));
+    var fldSaramCdS = document.getElementById('set-saram-arati-cd');
+    if (fldSaramCdS) chantSettings.saramAratiCountdown = fldSaramCdS.value !== 'off';
     if (fldFsText) chantSettings.fullscreenText = fldFsText.value;
     if (fldBreakMinutes) chantSettings.breakMinutes = Math.round(clampNum(fldBreakMinutes.value, 1, 120, CHANT_DEFAULTS.breakMinutes));
     if (fldTheme) chantSettings.theme = (fldTheme.value === 'light') ? 'light' : 'dark';
