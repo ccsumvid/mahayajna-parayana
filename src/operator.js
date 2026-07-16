@@ -238,6 +238,7 @@
       // Capture the base tempo the chapter runs at (used to offset colophon pages).
       currentChapterBpm = animator.getState().bpm;
       pageTempoDelta = 0;
+      hardStopDoneFor = null;
       populateShlokaDropdown();
       currentPage = 0;
       showPage(0, blankProjector);
@@ -431,6 +432,16 @@
     sendToProjector('syllable-update', { index: index, state: state, beatMs: beatMs, durationMs: beats * beatMs });
   });
 
+  // Sections whose END is a hard stop: rendering pauses on the last page
+  // (Datta Stavam per feedback #2; Chapters 9 and 18 stop after their trailing
+  // sarvadharmān). The stop fires once per arrival, so pressing Play after the
+  // stop continues to the next section.
+  var HARD_STOP_CHAPTER_ENDS = { datta_stavam: true, '9': true, '18': true };
+  // Sections that pause after their opening header(s): the first verse page is
+  // shown but waits for a manual Start.
+  var STOP_AFTER_HEADER_SECTIONS = { gita_mahatmyam: true, gita_saram: true, gita_arati: true };
+  var hardStopDoneFor = null; // chapter we already hard-stopped at (so Play can continue)
+
   // --- Auto-advance: when animator reaches end of page, go to next and resume ---
   animator.setOnAutoAdvance(async function() {
     var atChapterEnd = currentPage >= dataLayer.getPageCount() - 1;
@@ -443,8 +454,11 @@
       instructionShowing = true;
       headerInstructionShowing = true;
 
-      // Feedback #2: hard stop after Datta Stavam — operator resumes manually.
-      if (chapterId === 'datta_stavam') return; // stay paused on the last page
+      // Hard stop at designated section ends — operator resumes manually.
+      if (HARD_STOP_CHAPTER_ENDS[chapterId] && hardStopDoneFor !== chapterId) {
+        hardStopDoneFor = chapterId;
+        return; // stay paused on the last page; the next Play continues onward
+      }
 
       // Inter-chapter gap, then countdown, then play (feedback #5).
       // Issue #29: the countdown ("Listen to Śruti") must precede the chapter's
@@ -467,6 +481,16 @@
         });
       }, gapMs);
       return;
+    }
+
+    // After the opening header(s) of designated sections, show the first verse
+    // page but wait for a manual Start instead of auto-playing into it.
+    var finishedPg = dataLayer.getPage(currentPage);
+    var upcomingPg = dataLayer.getPage(currentPage + 1);
+    if (STOP_AFTER_HEADER_SECTIONS[chapterId] && finishedPg && finishedPg.isHeader &&
+        upcomingPg && !upcomingPg.isHeader) {
+      await nextPage();
+      return; // paused — presenter presses Start to begin the verses
     }
 
     // Mid-chapter pages (headers included). Insert a configurable pause before
