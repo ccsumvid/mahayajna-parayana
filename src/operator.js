@@ -29,7 +29,7 @@
     sarvadharmanPauseBeats: 3, // pause between colophon and sarvadharmān slide (mātrās) — #40
     headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
     saramAratiCountdown: true, // countdown before Gita Sāram / Ārati recitation (OFF = header -> recitation directly)
-    heavyPadaAdjust: true,   // TEST: stretch mātrā duration on heavy pādas (M/S > 1.75); OFF = current production pacing
+    heavyPadaAdjust: true,   // TEST v2: stretch heavy pādas (M/S > 1.70) / shrink light (M/S < 1.50); OFF = production pacing
     theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
     fullscreenText: '',      // announcement text for the full-screen text box
     breakMinutes: 10,        // break timer duration (minutes)
