@@ -14,11 +14,11 @@
   // older revision are migrated on load: per-section tempo overrides are dropped
   // (they were frozen pre-fill hints, see saveSettings), and pause/slow-down
   // values still at their OLD defaults are upgraded to the new defaults.
-  var SETTINGS_REV = 2;
+  var SETTINGS_REV = 3;
 
   var CHANT_DEFAULTS = {
     colophonBpmDrop: 20,     // internal bpm drop on colophon / ending pages
-    countdownSeconds: 5,     // pre-play countdown length
+    countdownSeconds: 3,     // pre-play countdown length — team 07-24 (was 5)
     chapterGapSeconds: 3,    // gap between chapters before the countdown
     verseZoom: 100,          // projector verse-text zoom (%) — #34
     headerPauseBeats: 3,     // pause (mātrās) after each header line — #36.1
@@ -82,6 +82,7 @@
             // ported default, 4 the original pre-port default for uvāca).
             if (merged.uvacaPauseBeats === 2 || merged.uvacaPauseBeats === 4) merged.uvacaPauseBeats = CHANT_DEFAULTS.uvacaPauseBeats;
             if (merged.headerBpmDrop === 20) merged.headerBpmDrop = CHANT_DEFAULTS.headerBpmDrop;
+            if (merged.countdownSeconds === 5) merged.countdownSeconds = CHANT_DEFAULTS.countdownSeconds;  // 5 → 3, team 07-24
           }
           if (isCurrentRev && parsed.sectionBpm && typeof parsed.sectionBpm === 'object') {
             for (var k in parsed.sectionBpm) {
@@ -226,6 +227,10 @@
   // only appears after the countdown. blankProjector=false: for auto-advance — show immediately.
   async function loadChapter(chapterId, blankProjector) {
     try {
+      // Manual navigation aborts any in-flight start flow: a ticking countdown
+      // or a pending Sāram/Ārati title-gap must not fire on the new section.
+      cancelCountdown();
+      manualTitlePending = false;
       renderer.invalidatePrefetch();
       var chData = await dataLayer.fetchChapter(chapterId);
       // Apply BPM for this section: a Settings override (internal bpm) wins over the
@@ -271,10 +276,24 @@
     updateSpmDisplay();
   }
 
+  // Pages that carry the persistent Pranam mudra card: headers, colophons
+  // (except ch18's long closer), sarvadharmān, Datta Stavam page 1 (the
+  // salutations page — no shlokaNum; team 07-24 — its old timed cue fired at
+  // chapter-load and auto-dismissed behind the countdown, so it was never
+  // seen), and 18.66 / 18.78.
+  function pageNeedsMudra(page, chId) {
+    return !!(page && (page.isHeader ||
+      (page.isCloser && chId !== '18') ||  // ch18's closing text is long — the mudra card overlapped it
+      page.shlokaNum === 'sarvadharmān' ||
+      (chId === 'datta_stavam' && !page.shlokaNum) ||
+      (chId === '18' && (page.shlokaNum === '66' || page.shlokaNum === '78'))));
+  }
+
   // --- Page display ---
   function showPage(index, blankProjector) {
     if (blankHoldActive) {
       blankHoldActive = false;
+      projectorBlanked = false;
       sendToProjector('countdown', { number: 0 }); // release the Sāram/Ārati blank hold
     }
     animator.reset();
@@ -299,6 +318,7 @@
     if (blankProjector) {
       // Blank the projector now — header will appear after countdown
       sendToProjector('countdown', { number: -1 });
+      projectorBlanked = true;
     } else {
       syncProjectorPage();
     }
@@ -307,10 +327,7 @@
     // ("|| ōṃ tatsaditi ...") page, on each chapter's trailing sarvadharmān recitation,
     // and on 18.66 / 18.78. Auto-dismissed on other pages.
     // Only auto-shown cards are auto-dismissed — manual instructions survive page flips.
-    var needsMudra = page && (page.isHeader ||
-      (page.isCloser && chId !== '18') ||  // ch18's closing text is long — the mudra card overlapped it
-      page.shlokaNum === 'sarvadharmān' ||
-      (chId === '18' && (page.shlokaNum === '66' || page.shlokaNum === '78')));
+    var needsMudra = pageNeedsMudra(page, chId);
     // Folded-hands cue at the start of sloka 1 and sloka 2 of EVERY chapter:
     // auto-shown once per entry into the sloka (repeat passes of the same sloka
     // don't replay it; re-entering the sloka later does), auto-dismissed after
@@ -372,18 +389,44 @@
 
   // --- Countdown ---
   var countdownActive = false;
+  // True while the projector sits behind the opaque blank overlay (countdown -1)
+  // waiting for a countdown to reveal it. Selecting a specific sloka releases the
+  // blank directly (team 07-24: jump-to-sloka after a chapter change must not
+  // require the countdown flow); the Saram/Arati blank-hold is NOT released this
+  // way — Play owns that.
+  var projectorBlanked = false;
+  // A manual Sāram/Ārati start is mid-flow (title showing, countdown/hold coming).
+  var manualTitlePending = false;
 
-  function startCountdown(callback) {
+  // holdBlankAtEnd: finish on the opaque blank (-1) instead of revealing (0) —
+  // the overlay never drops, so no content can flash between countdown end and
+  // whatever the callback sets up (Sāram/Ārati blank-hold, #07-24).
+  var countdownInterval = null;
+  // Abandon a running countdown (operator navigated away mid-transition) so its
+  // ticks and completion callback can't fire on whatever loads next.
+  function cancelCountdown() {
+    if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+    countdownActive = false;
+  }
+
+  function startCountdown(callback, holdBlankAtEnd) {
     if (countdownActive) return;
     countdownActive = true;
     var count = chantSettings.countdownSeconds;
     sendToProjector('countdown', { number: count });
-    var interval = setInterval(function() {
+    var interval = countdownInterval = setInterval(function() {
       count--;
       if (count <= 0) {
         clearInterval(interval);
+        countdownInterval = null;
         countdownActive = false;
-        sendToProjector('countdown', { number: 0 });
+        if (holdBlankAtEnd) {
+          sendToProjector('countdown', { number: -1, bare: true }); // pure black — no labels
+          projectorBlanked = true;
+        } else {
+          projectorBlanked = false;
+          sendToProjector('countdown', { number: 0 });
+        }
         if (callback) callback();
       } else {
         sendToProjector('countdown', { number: count });
@@ -394,16 +437,65 @@
   function playWithCountdown() {
     if (blankHoldActive) {
       // Blank-hold after the Sāram/Ārati countdown: reveal and play directly —
-      // the countdown already ran before the blank.
+      // the countdown already ran before the blank. Full showPage (not just a
+      // sync) so the revealed page gets its normal cue cards back (the mudra
+      // card was dismissed when the hold began).
       blankHoldActive = false;
+      projectorBlanked = false;
       sendToProjector('countdown', { number: 0 });
-      syncProjectorPage();
+      showPage(currentPage);
       animator.play();
       return;
     }
     if (currentPage === 0 && animator.getState().currentIndex < 0) {
+      // Sāram/Ārati started MANUALLY (chapter dropdown → Play): mirror the
+      // auto-advance flow exactly (#07-25) — reveal the section TITLE first,
+      // let it sit for the chapter gap, then countdown into the bare hold;
+      // nothing plays until the operator presses Play again.
+      var holdId = dataLayer.getCurrentChapterId();
+      if (HOLD_BLANK_AFTER_COUNTDOWN[holdId]) {
+        // One flow at a time: ignore Play during the title gap OR the countdown
+        // (re-entering would schedule a second reveal mid-countdown).
+        if (manualTitlePending || countdownActive) return;
+        manualTitlePending = true;
+        syncProjectorPage(); // render the title behind the selection blank...
+        setTimeout(function() {
+          // ...and reveal it once the projector has had time to draw it —
+          // unless the operator navigated away in the meantime.
+          if (!manualTitlePending || dataLayer.getCurrentChapterId() !== holdId) return;
+          projectorBlanked = false;
+          sendToProjector('countdown', { number: 0 });
+        }, 300);
+        var enterHold = function() {
+          var fc = 0;
+          var tot = dataLayer.getPageCount();
+          while (fc < tot && dataLayer.getPage(fc).isHeader) fc++;
+          if (fc < tot) showPage(fc); // renders behind the still-opaque blank
+          // Nothing may show over the hold — not even the mudra card (it floats
+          // above the blank overlay). Title-only sections keep their header card
+          // otherwise, since the fc loop finds no content page to switch to.
+          if (headerInstructionShowing) dismissInstruction();
+          blankHoldActive = true;
+          projectorBlanked = true;
+        };
+        setTimeout(function() {
+          manualTitlePending = false;
+          // Operator navigated away during the title display — abandon the flow.
+          if (dataLayer.getCurrentChapterId() !== holdId || currentPage !== 0) return;
+          // Same countdown-skip rule as the auto-advance path (Settings toggle).
+          if (chantSettings.saramAratiCountdown === false) {
+            sendToProjector('countdown', { number: -1, bare: true });
+            projectorBlanked = true;
+            enterHold();
+          } else {
+            startCountdown(enterHold, true);
+          }
+        }, Math.max(300, chantSettings.chapterGapSeconds * 1000));
+        return;
+      }
       // Blank projector, pre-render behind the blank, then countdown
       sendToProjector('countdown', { number: -1 });
+      projectorBlanked = true;
       syncProjectorPage();
       startCountdown(function() {
         animator.play();
@@ -459,7 +551,9 @@
   // (Datta Stavam per feedback #2; Chapters 9 and 18 stop after their trailing
   // sarvadharmān). The stop fires once per arrival, so pressing Play after the
   // stop continues to the next section.
-  var HARD_STOP_CHAPTER_ENDS = { datta_stavam: true, '9': true, '18': true };
+  // kshama_prarthana (Samarpana): stop on its last sloka-4 slide — Gita Sāram
+  // must not begin without the operator (team 07-25).
+  var HARD_STOP_CHAPTER_ENDS = { datta_stavam: true, '9': true, '18': true, kshama_prarthana: true };
   // Sections that pause after their opening header(s): the first verse page is
   // shown but waits for a manual Start.
   var STOP_AFTER_HEADER_SECTIONS = { gita_saram: true, gita_arati: true };
@@ -529,7 +623,9 @@
                 var tot = dataLayer.getPageCount();
                 while (fc < tot && dataLayer.getPage(fc).isHeader) fc++;
                 if (fc < tot) showPage(fc); // pre-position so Play starts the first content page
-                sendToProjector('countdown', { number: -1 }); // opaque blank overlay
+                sendToProjector('countdown', { number: -1, bare: true }); // pure black — no labels
+                if (headerInstructionShowing) dismissInstruction(); // no mudra card over the hold
+                projectorBlanked = true;
                 blankHoldActive = true;
                 return;
               }
@@ -625,6 +721,15 @@
     var pageIndex = parseInt(shlokaSelect.value, 10);
     if (!isNaN(pageIndex) && pageIndex >= 0 && pageIndex < dataLayer.getPageCount()) {
       showPage(pageIndex);
+      // Jump-to-sloka after a manual chapter change: the projector is still behind
+      // the pre-countdown blank — reveal the selected page directly so Play starts
+      // it without the countdown flow (team 07-24). Header selection (index 0)
+      // keeps the blank so a normal Play → countdown → header start is preserved,
+      // as does an actively running countdown.
+      if (pageIndex > 0 && projectorBlanked && !countdownActive && !blankHoldActive) {
+        projectorBlanked = false;
+        sendToProjector('countdown', { number: 0 });
+      }
     }
   });
 
@@ -739,8 +844,18 @@
     if (projectorOpen) {
       // Re-apply blank overlay, then render behind it (maintain pre-play blank state)
       sendToProjector('countdown', { number: -1 });
+      projectorBlanked = true;
       applyChantSettings(); // push current verse-zoom (#34) to the (re)opened projector
       syncProjectorPage();
+      // Instruction cards don't survive a projector (re)open — the show-instruction
+      // was sent before the window existed (e.g. app starts on Datta Stavam, THEN
+      // the operator opens the projector). Re-send the persistent mudra card for
+      // the current page; never over a Sāram/Ārati bare hold.
+      if (!blankHoldActive && pageNeedsMudra(dataLayer.getPage(currentPage), dataLayer.getCurrentChapterId())) {
+        sendToProjector('show-instruction', INSTRUCTION_DATA['pranam']);
+        instructionShowing = true;
+        headerInstructionShowing = true;
+      }
     }
   });
 
