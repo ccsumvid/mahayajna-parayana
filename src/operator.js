@@ -14,11 +14,11 @@
   // older revision are migrated on load: per-section tempo overrides are dropped
   // (they were frozen pre-fill hints, see saveSettings), and pause/slow-down
   // values still at their OLD defaults are upgraded to the new defaults.
-  var SETTINGS_REV = 3;
+  var SETTINGS_REV = 2;
 
   var CHANT_DEFAULTS = {
     colophonBpmDrop: 20,     // internal bpm drop on colophon / ending pages
-    countdownSeconds: 3,     // pre-play countdown length — team 07-24 (was 5)
+    countdownSeconds: 5,     // pre-play countdown length
     chapterGapSeconds: 3,    // gap between chapters before the countdown
     verseZoom: 100,          // projector verse-text zoom (%) — #34
     headerPauseBeats: 3,     // pause (mātrās) after each header line — #36.1
@@ -82,7 +82,6 @@
             // ported default, 4 the original pre-port default for uvāca).
             if (merged.uvacaPauseBeats === 2 || merged.uvacaPauseBeats === 4) merged.uvacaPauseBeats = CHANT_DEFAULTS.uvacaPauseBeats;
             if (merged.headerBpmDrop === 20) merged.headerBpmDrop = CHANT_DEFAULTS.headerBpmDrop;
-            if (merged.countdownSeconds === 5) merged.countdownSeconds = CHANT_DEFAULTS.countdownSeconds;  // 5 → 3, team 07-24
           }
           if (isCurrentRev && parsed.sectionBpm && typeof parsed.sectionBpm === 'object') {
             for (var k in parsed.sectionBpm) {
