@@ -748,7 +748,11 @@ const renderer = (function() {
   // Sections whose title HEADER slide is a plain static title (text in both
   // display modes, no pointer). Kept minimal: only the new Pūrṇam / Samarpana
   // titles — existing section headers keep their current behavior.
-  const STATIC_TITLE_SECTIONS = { purnam: true, kshama_prarthana: true };
+  const STATIC_TITLE_SECTIONS = { purnam: true, kshama_prarthana: true,
+    // Title-before-countdown sections (team 07-27): their 'th' title slides are
+    // plain readable title cards, displayed for the chapter gap before the
+    // countdown — not chanted content. Mahātmyam's closing 'uh' stays animated.
+    datta_stavam: true, invocation_prayers: true, gita_mahatmyam: true };
   // Per-section line-pause overrides (team pacing table): Dhyana ('0') and Invocation
   // Prayers use gentler pauses (anuṣṭubh 1.5 / triṣṭubh 2.5); everything else uses
   // the paceConfig defaults above.
