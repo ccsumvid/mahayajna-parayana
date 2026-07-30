@@ -592,7 +592,10 @@ const dataLayer = (function() {
       for (const hdr of headerEntries) {
         result.push({
           shlokaNum: shloka.shlokaNum,
-          lines: [{ text: hdr.text, iast: hdr.iast || '', swhtsp: hdr.swhtsp, sty: hdr.sty }],
+          // staticTitle: per-entry display-only title card (e.g. Mahātmyam's
+          // "gītāmāhātmyam" card, #07-30) — static text, no pointer, and the
+          // recitation position skips it, unlike its chanted "atha..." header.
+          lines: [{ text: hdr.text, iast: hdr.iast || '', swhtsp: hdr.swhtsp, sty: hdr.sty, staticTitle: hdr.staticTitle === true }],
           isHeader: true
         });
       }
@@ -751,8 +754,11 @@ const renderer = (function() {
   const STATIC_TITLE_SECTIONS = { purnam: true, kshama_prarthana: true,
     // Title-before-countdown sections (team 07-27): their 'th' title slides are
     // plain readable title cards, displayed for the chapter gap before the
-    // countdown — not chanted content. Mahātmyam's closing 'uh' stays animated.
-    datta_stavam: true, invocation_prayers: true, gita_mahatmyam: true };
+    // countdown — not chanted content.
+    // Gita Mahātmyam is NOT here (team 07-30): only its dedicated title card
+    // (entry staticTitle flag) is static — "atha gītāmāhātmyam" is CHANTED as
+    // asterisks after the countdown, followed by the slokas.
+    datta_stavam: true, invocation_prayers: true };
   // Per-section line-pause overrides (team pacing table): Dhyana ('0') and Invocation
   // Prayers use gentler pauses (anuṣṭubh 1.5 / triṣṭubh 2.5); everything else uses
   // the paceConfig defaults above.
@@ -809,7 +815,7 @@ const renderer = (function() {
         // text in BOTH display modes and move no pointer over them (same look as
         // the Gita Sāram / Ārati titles on the team's build). Closing 'uh' headers
         // stay animated.
-        const staticTitle = STATIC_TITLE_SECTIONS[dataLayer.getCurrentChapterId()] === true && line.sty !== 'uh';
+        const staticTitle = (STATIC_TITLE_SECTIONS[dataLayer.getCurrentChapterId()] === true || line.staticTitle === true) && line.sty !== 'uh';
 
         if (currentMode !== 'asterisk' || staticTitle) {
           // English mode (or a static title): one span per header line with the text.
@@ -1126,6 +1132,17 @@ const renderer = (function() {
     return { index: idx, progress: idx === first + off ? scaled - off : 0 };
   }
 
+  // Display-only title page: static text, no pointer, skipped when positioning
+  // the recitation start. True for pages of STATIC_TITLE_SECTIONS and for
+  // pages whose line carries the per-entry staticTitle flag; a closing 'uh'
+  // header is never a static title.
+  function isStaticTitlePage(pageData) {
+    if (!pageData || !pageData.isHeader) return false;
+    var line = pageData.lines[0];
+    if (!line || line.sty === 'uh') return false;
+    return line.staticTitle === true || STATIC_TITLE_SECTIONS[dataLayer.getCurrentChapterId()] === true;
+  }
+
   return {
     renderPage: renderPage,
     prefetchPage: prefetchPage,
@@ -1133,6 +1150,7 @@ const renderer = (function() {
     invalidatePrefetch: invalidatePrefetch,
     setMode: setMode,
     setPaceConfig: setPaceConfig,
+    isStaticTitlePage: isStaticTitlePage,
     getSyllableElements: getSyllableElements,
     getLinePosition: getLinePosition,
     mapLinePosition: mapLinePosition,
