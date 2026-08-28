@@ -29,6 +29,7 @@
     sarvadharmanPauseBeats: 3, // pause between colophon and sarvadharmān slide (mātrās) — #40
     headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
     saramAratiCountdown: true, // countdown before Gita Sāram / Ārati recitation (OFF = header -> recitation directly)
+    perSyllableTiming: true, // Case 2 (team 07-30): pointer dwells per guru/laghu weight; OFF = line-average glide
     theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
     fullscreenText: '',      // announcement text for the full-screen text box
     breakMinutes: 10,        // break timer duration (minutes)
@@ -50,6 +51,7 @@
       sarvadharmanPauseBeats: CHANT_DEFAULTS.sarvadharmanPauseBeats,
       headerBpmDrop: CHANT_DEFAULTS.headerBpmDrop,
       saramAratiCountdown: CHANT_DEFAULTS.saramAratiCountdown,
+      perSyllableTiming: CHANT_DEFAULTS.perSyllableTiming,
       theme: CHANT_DEFAULTS.theme,
       fullscreenText: CHANT_DEFAULTS.fullscreenText,
       breakMinutes: CHANT_DEFAULTS.breakMinutes,
@@ -73,6 +75,7 @@
           if (typeof parsed.sarvadharmanPauseBeats === 'number') merged.sarvadharmanPauseBeats = parsed.sarvadharmanPauseBeats;
           if (typeof parsed.headerBpmDrop === 'number') merged.headerBpmDrop = parsed.headerBpmDrop;
           if (typeof parsed.saramAratiCountdown === 'boolean') merged.saramAratiCountdown = parsed.saramAratiCountdown;
+          if (typeof parsed.perSyllableTiming === 'boolean') merged.perSyllableTiming = parsed.perSyllableTiming;
           if (parsed.theme === 'dark' || parsed.theme === 'light') merged.theme = parsed.theme;
           if (typeof parsed.fullscreenText === 'string') merged.fullscreenText = parsed.fullscreenText;
           if (typeof parsed.breakMinutes === 'number') merged.breakMinutes = parsed.breakMinutes;
@@ -128,7 +131,8 @@
       headerPauseBeats: chantSettings.headerPauseBeats,
       anustubhBeats: chantSettings.anustubhBeats,
       tristubhBeats: chantSettings.tristubhBeats,
-      uvacaPauseBeats: chantSettings.uvacaPauseBeats
+      uvacaPauseBeats: chantSettings.uvacaPauseBeats,
+      perSyllableTiming: chantSettings.perSyllableTiming
     });
     // Projector theme — dark (black bg) / light (white bg) — #37
     sendToProjector('theme', { theme: chantSettings.theme });
@@ -1036,6 +1040,8 @@
     if (fldHeaderBpmDrop) fldHeaderBpmDrop.value = chantSettings.headerBpmDrop;
     var fldSaramCd = document.getElementById('set-saram-arati-cd');
     if (fldSaramCd) fldSaramCd.value = chantSettings.saramAratiCountdown ? 'on' : 'off';
+    var fldPerSyl = document.getElementById('set-per-syllable');
+    if (fldPerSyl) fldPerSyl.value = chantSettings.perSyllableTiming ? 'on' : 'off';
     if (fldFsText) fldFsText.value = chantSettings.fullscreenText || '';
     if (fldBreakMinutes) fldBreakMinutes.value = chantSettings.breakMinutes;
     if (fldTheme) fldTheme.value = chantSettings.theme;
@@ -1092,6 +1098,8 @@
     if (fldHeaderBpmDrop) chantSettings.headerBpmDrop = Math.round(clampNum(fldHeaderBpmDrop.value, 0, 80, CHANT_DEFAULTS.headerBpmDrop));
     var fldSaramCdS = document.getElementById('set-saram-arati-cd');
     if (fldSaramCdS) chantSettings.saramAratiCountdown = fldSaramCdS.value !== 'off';
+    var fldPerSylS = document.getElementById('set-per-syllable');
+    if (fldPerSylS) chantSettings.perSyllableTiming = fldPerSylS.value !== 'off';
     if (fldFsText) chantSettings.fullscreenText = fldFsText.value;
     if (fldBreakMinutes) chantSettings.breakMinutes = Math.round(clampNum(fldBreakMinutes.value, 1, 120, CHANT_DEFAULTS.breakMinutes));
     if (fldTheme) chantSettings.theme = (fldTheme.value === 'light') ? 'light' : 'dark';
