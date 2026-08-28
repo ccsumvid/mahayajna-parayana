@@ -30,6 +30,7 @@
     headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
     saramAratiCountdown: true, // countdown before Gita Sāram / Ārati recitation (OFF = header -> recitation directly)
     perSyllableTiming: true, // Case 2 (team 07-30): pointer dwells per guru/laghu weight; OFF = line-average glide
+    headerWordGapMs: 2,      // pause (ms) after each WORD on chanted header lines (team 07-30); 0 = off
     theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
     fullscreenText: '',      // announcement text for the full-screen text box
     breakMinutes: 10,        // break timer duration (minutes)
@@ -52,6 +53,7 @@
       headerBpmDrop: CHANT_DEFAULTS.headerBpmDrop,
       saramAratiCountdown: CHANT_DEFAULTS.saramAratiCountdown,
       perSyllableTiming: CHANT_DEFAULTS.perSyllableTiming,
+      headerWordGapMs: CHANT_DEFAULTS.headerWordGapMs,
       theme: CHANT_DEFAULTS.theme,
       fullscreenText: CHANT_DEFAULTS.fullscreenText,
       breakMinutes: CHANT_DEFAULTS.breakMinutes,
@@ -76,6 +78,7 @@
           if (typeof parsed.headerBpmDrop === 'number') merged.headerBpmDrop = parsed.headerBpmDrop;
           if (typeof parsed.saramAratiCountdown === 'boolean') merged.saramAratiCountdown = parsed.saramAratiCountdown;
           if (typeof parsed.perSyllableTiming === 'boolean') merged.perSyllableTiming = parsed.perSyllableTiming;
+          if (typeof parsed.headerWordGapMs === 'number') merged.headerWordGapMs = parsed.headerWordGapMs;
           if (parsed.theme === 'dark' || parsed.theme === 'light') merged.theme = parsed.theme;
           if (typeof parsed.fullscreenText === 'string') merged.fullscreenText = parsed.fullscreenText;
           if (typeof parsed.breakMinutes === 'number') merged.breakMinutes = parsed.breakMinutes;
@@ -132,7 +135,8 @@
       anustubhBeats: chantSettings.anustubhBeats,
       tristubhBeats: chantSettings.tristubhBeats,
       uvacaPauseBeats: chantSettings.uvacaPauseBeats,
-      perSyllableTiming: chantSettings.perSyllableTiming
+      perSyllableTiming: chantSettings.perSyllableTiming,
+      headerWordGapMs: chantSettings.headerWordGapMs
     });
     // Projector theme — dark (black bg) / light (white bg) — #37
     sendToProjector('theme', { theme: chantSettings.theme });
@@ -577,7 +581,8 @@
     var elems = renderer.getSyllableElements();
     var el = elems[index];
     var beats = el ? (parseInt(el.dataset.beats, 10) || 1) : 1;
-    sendToProjector('syllable-update', { index: index, state: state, beatMs: beatMs, durationMs: beats * beatMs });
+    var extraMs = el ? (parseFloat(el.dataset.extraMs) || 0) : 0;
+    sendToProjector('syllable-update', { index: index, state: state, beatMs: beatMs, durationMs: beats * beatMs + extraMs });
   });
 
   // Sections whose END is a hard stop: rendering pauses on the last page
@@ -1042,6 +1047,8 @@
     if (fldSaramCd) fldSaramCd.value = chantSettings.saramAratiCountdown ? 'on' : 'off';
     var fldPerSyl = document.getElementById('set-per-syllable');
     if (fldPerSyl) fldPerSyl.value = chantSettings.perSyllableTiming ? 'on' : 'off';
+    var fldWordGap = document.getElementById('set-header-word-gap');
+    if (fldWordGap) fldWordGap.value = chantSettings.headerWordGapMs;
     if (fldFsText) fldFsText.value = chantSettings.fullscreenText || '';
     if (fldBreakMinutes) fldBreakMinutes.value = chantSettings.breakMinutes;
     if (fldTheme) fldTheme.value = chantSettings.theme;
@@ -1100,6 +1107,8 @@
     if (fldSaramCdS) chantSettings.saramAratiCountdown = fldSaramCdS.value !== 'off';
     var fldPerSylS = document.getElementById('set-per-syllable');
     if (fldPerSylS) chantSettings.perSyllableTiming = fldPerSylS.value !== 'off';
+    var fldWordGapS = document.getElementById('set-header-word-gap');
+    if (fldWordGapS) chantSettings.headerWordGapMs = Math.round(clampNum(fldWordGapS.value, 0, 500, CHANT_DEFAULTS.headerWordGapMs));
     if (fldFsText) chantSettings.fullscreenText = fldFsText.value;
     if (fldBreakMinutes) chantSettings.breakMinutes = Math.round(clampNum(fldBreakMinutes.value, 1, 120, CHANT_DEFAULTS.breakMinutes));
     if (fldTheme) chantSettings.theme = (fldTheme.value === 'light') ? 'light' : 'dark';
