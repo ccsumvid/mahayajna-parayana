@@ -2,6 +2,7 @@
   "name": "gītāsāram",
   "iastName": "gītāsāram",
   "chapterNum": "gita_saram",
+  "defaultBpm": 320,
   "shloka": [
     {
       "shlokaNum": "",

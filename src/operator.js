@@ -141,6 +141,8 @@
       pacingMode: chantSettings.pacingVersion,
       headerWordGapMs: chantSettings.pacingVersion !== 'A' ? chantSettings.headerWordGapMs : 0
     });
+    // Version-scoped data: bcOnly ślokas exist in B/C only (no-op in this repo).
+    dataLayer.setPacingMode(chantSettings.pacingVersion);
     // The projector renders its own copy of every page, and versions differ in
     // STAR COUNTS (C: one per mātrā) — it must always share the operator's
     // pacing config or pointer indexes would land on the wrong element.
@@ -497,7 +499,9 @@
         // (re-entering would schedule a second reveal mid-countdown).
         if (manualTitlePending || countdownActive) return;
         manualTitlePending = true;
-        var isHold = HOLD_BLANK_AFTER_COUNTDOWN[secId] === true;
+        // The black hold is version-A behavior only (team 08-30): in B/C the
+        // sections render like any other section.
+        var isHold = HOLD_BLANK_AFTER_COUNTDOWN[secId] === true && chantSettings.pacingVersion === 'A';
         syncProjectorPage(); // render the title behind the selection blank...
         setTimeout(function() {
           // ...and reveal it once the projector has had time to draw it —
@@ -669,7 +673,7 @@
             var beginRecitation = function() {
               // Sāram/Ārati: hold on a BLANK slide after the countdown — no text,
               // no pointer, nothing plays until the operator acts.
-              if (HOLD_BLANK_AFTER_COUNTDOWN[nextId]) {
+              if (HOLD_BLANK_AFTER_COUNTDOWN[nextId] && chantSettings.pacingVersion === 'A') {
                 var fc = firstRecitationPage();
                 var tot = dataLayer.getPageCount();
                 if (fc < tot) showPage(fc); // pre-position so Play starts the first content page
@@ -1032,7 +1036,7 @@
     '2': 320, '3': 340, '4': 340, '5': 340, '6': 340, '7': 340, '8': 340,
     '9': 340, '10': 340, '11': 340, '12': 340, '13': 340, '14': 340,
     '15': 340, '16': 340, '17': 340, '18': 340, gita_mahatmyam: 320,
-    kshama_prarthana: 300
+    kshama_prarthana: 300, gita_saram: 320, gita_arati: 320
   };
   function effectiveSectionBpm(id) {
     if (typeof chantSettings.sectionBpm[id] === 'number') return chantSettings.sectionBpm[id];

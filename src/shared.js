@@ -642,11 +642,20 @@ const dataLayer = (function() {
   // (the default regular parayana). When set, next/prev traversal skips
   // chapters not in the subset, but manual jumps to any chapter still work.
   let activeChapters = null;
+  // Pacing version (A/B/C) — ślokas flagged bcOnly in the data exist only in
+  // versions B and C; version A (the parayana base) skips them. This repo's
+  // data carries no bcOnly flags (its parayana base always had the Sāram/Ārati
+  // content), so the filter is a no-op here — kept for code parity.
+  let pacingMode = 'C';
+  function setPacingMode(mode) {
+    if (mode === 'A' || mode === 'B' || mode === 'C') pacingMode = mode;
+  }
 
   function groupIntoPages(shlokas, chapterLineEndPause) {
     const result = [];
 
     for (const shloka of shlokas) {
+      if (shloka.bcOnly === true && pacingMode === 'A') continue;
       const headerEntries = shloka.entry.filter(e => e.sty === 'fh' || e.sty === 'sh' || e.sty === 'th' || e.sty === 'uh');
       const regularEntries = shloka.entry.filter(e => e.sty !== 'fh' && e.sty !== 'sh' && e.sty !== 'th' && e.sty !== 'uh');
 
@@ -789,7 +798,7 @@ const dataLayer = (function() {
     return null;
   }
 
-  return { fetchChapter, getPage, getPageCount, getChapterName, getCurrentChapterId, getNextChapterId, getPrevChapterId, setActiveChapters, getFirstActiveChapterId, CHAPTER_ORDER };
+  return { fetchChapter, getPage, getPageCount, getChapterName, getCurrentChapterId, getNextChapterId, getPrevChapterId, setActiveChapters, getFirstActiveChapterId, setPacingMode, CHAPTER_ORDER };
 })();
 
 // ============================================================

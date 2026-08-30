@@ -2,6 +2,7 @@
   "name": "gītā ārati",
   "iastName": "gītā ārati",
   "chapterNum": "gita_arati",
+  "defaultBpm": 320,
   "shloka": [
     {
       "shlokaNum": "",
