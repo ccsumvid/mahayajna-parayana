@@ -29,6 +29,8 @@
     sarvadharmanPauseBeats: 3, // pause between colophon and sarvadharmān slide (mātrās) — #40
     headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
     saramAratiCountdown: true, // countdown before Gita Sāram / Ārati recitation (OFF = header -> recitation directly)
+    pacingVersion: 'C',      // A = parayana baseline (even glide) · B = per-syllable dwell · C = mātrā stars, constant pointer
+    headerWordGapMs: 2,      // pause (ms) after each WORD on chanted header lines — applies in version B only; 0 = off
     theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
     fullscreenText: '',      // announcement text for the full-screen text box
     breakMinutes: 10,        // break timer duration (minutes)
@@ -50,6 +52,8 @@
       sarvadharmanPauseBeats: CHANT_DEFAULTS.sarvadharmanPauseBeats,
       headerBpmDrop: CHANT_DEFAULTS.headerBpmDrop,
       saramAratiCountdown: CHANT_DEFAULTS.saramAratiCountdown,
+      pacingVersion: CHANT_DEFAULTS.pacingVersion,
+      headerWordGapMs: CHANT_DEFAULTS.headerWordGapMs,
       theme: CHANT_DEFAULTS.theme,
       fullscreenText: CHANT_DEFAULTS.fullscreenText,
       breakMinutes: CHANT_DEFAULTS.breakMinutes,
@@ -73,6 +77,9 @@
           if (typeof parsed.sarvadharmanPauseBeats === 'number') merged.sarvadharmanPauseBeats = parsed.sarvadharmanPauseBeats;
           if (typeof parsed.headerBpmDrop === 'number') merged.headerBpmDrop = parsed.headerBpmDrop;
           if (typeof parsed.saramAratiCountdown === 'boolean') merged.saramAratiCountdown = parsed.saramAratiCountdown;
+          if (parsed.pacingVersion === 'A' || parsed.pacingVersion === 'B' || parsed.pacingVersion === 'C') merged.pacingVersion = parsed.pacingVersion;
+          else if (typeof parsed.perSyllableTiming === 'boolean') merged.pacingVersion = parsed.perSyllableTiming ? 'B' : 'A'; // legacy toggle
+          if (typeof parsed.headerWordGapMs === 'number') merged.headerWordGapMs = parsed.headerWordGapMs;
           if (parsed.theme === 'dark' || parsed.theme === 'light') merged.theme = parsed.theme;
           if (typeof parsed.fullscreenText === 'string') merged.fullscreenText = parsed.fullscreenText;
           if (typeof parsed.breakMinutes === 'number') merged.breakMinutes = parsed.breakMinutes;
@@ -128,7 +135,20 @@
       headerPauseBeats: chantSettings.headerPauseBeats,
       anustubhBeats: chantSettings.anustubhBeats,
       tristubhBeats: chantSettings.tristubhBeats,
-      uvacaPauseBeats: chantSettings.uvacaPauseBeats
+      uvacaPauseBeats: chantSettings.uvacaPauseBeats,
+      // A/B/C switch: A reproduces the parayana baseline exactly (even glide,
+      // no word gaps); B = per-syllable dwell; C = mātrā stars.
+      pacingMode: chantSettings.pacingVersion,
+      headerWordGapMs: chantSettings.pacingVersion !== 'A' ? chantSettings.headerWordGapMs : 0
+    });
+    // Version-scoped data: bcOnly ślokas exist in B/C only (no-op in this repo).
+    dataLayer.setPacingMode(chantSettings.pacingVersion);
+    // The projector renders its own copy of every page, and versions differ in
+    // STAR COUNTS (C: one per mātrā) — it must always share the operator's
+    // pacing config or pointer indexes would land on the wrong element.
+    sendToProjector('pace-config', {
+      pacingMode: chantSettings.pacingVersion,
+      headerWordGapMs: chantSettings.pacingVersion !== 'A' ? chantSettings.headerWordGapMs : 0
     });
     // Projector theme — dark (black bg) / light (white bg) — #37
     sendToProjector('theme', { theme: chantSettings.theme });
@@ -479,7 +499,9 @@
         // (re-entering would schedule a second reveal mid-countdown).
         if (manualTitlePending || countdownActive) return;
         manualTitlePending = true;
-        var isHold = HOLD_BLANK_AFTER_COUNTDOWN[secId] === true;
+        // The black hold is version-A behavior only (team 08-30): in B/C the
+        // sections render like any other section.
+        var isHold = HOLD_BLANK_AFTER_COUNTDOWN[secId] === true && chantSettings.pacingVersion === 'A';
         syncProjectorPage(); // render the title behind the selection blank...
         setTimeout(function() {
           // ...and reveal it once the projector has had time to draw it —
@@ -573,7 +595,8 @@
     var elems = renderer.getSyllableElements();
     var el = elems[index];
     var beats = el ? (parseInt(el.dataset.beats, 10) || 1) : 1;
-    sendToProjector('syllable-update', { index: index, state: state, beatMs: beatMs, durationMs: beats * beatMs });
+    var extraMs = el ? (parseFloat(el.dataset.extraMs) || 0) : 0;
+    sendToProjector('syllable-update', { index: index, state: state, beatMs: beatMs, durationMs: beats * beatMs + extraMs });
   });
 
   // Sections whose END is a hard stop: rendering pauses on the last page
@@ -650,7 +673,7 @@
             var beginRecitation = function() {
               // Sāram/Ārati: hold on a BLANK slide after the countdown — no text,
               // no pointer, nothing plays until the operator acts.
-              if (HOLD_BLANK_AFTER_COUNTDOWN[nextId]) {
+              if (HOLD_BLANK_AFTER_COUNTDOWN[nextId] && chantSettings.pacingVersion === 'A') {
                 var fc = firstRecitationPage();
                 var tot = dataLayer.getPageCount();
                 if (fc < tot) showPage(fc); // pre-position so Play starts the first content page
@@ -1013,7 +1036,7 @@
     '2': 320, '3': 340, '4': 340, '5': 340, '6': 340, '7': 340, '8': 340,
     '9': 340, '10': 340, '11': 340, '12': 340, '13': 340, '14': 340,
     '15': 340, '16': 340, '17': 340, '18': 340, gita_mahatmyam: 320,
-    kshama_prarthana: 300
+    kshama_prarthana: 300, gita_saram: 320, gita_arati: 320
   };
   function effectiveSectionBpm(id) {
     if (typeof chantSettings.sectionBpm[id] === 'number') return chantSettings.sectionBpm[id];
@@ -1036,6 +1059,10 @@
     if (fldHeaderBpmDrop) fldHeaderBpmDrop.value = chantSettings.headerBpmDrop;
     var fldSaramCd = document.getElementById('set-saram-arati-cd');
     if (fldSaramCd) fldSaramCd.value = chantSettings.saramAratiCountdown ? 'on' : 'off';
+    var fldPacing = document.getElementById('set-pacing-version');
+    if (fldPacing) fldPacing.value = chantSettings.pacingVersion;
+    var fldWordGap = document.getElementById('set-header-word-gap');
+    if (fldWordGap) fldWordGap.value = chantSettings.headerWordGapMs;
     if (fldFsText) fldFsText.value = chantSettings.fullscreenText || '';
     if (fldBreakMinutes) fldBreakMinutes.value = chantSettings.breakMinutes;
     if (fldTheme) fldTheme.value = chantSettings.theme;
@@ -1092,6 +1119,10 @@
     if (fldHeaderBpmDrop) chantSettings.headerBpmDrop = Math.round(clampNum(fldHeaderBpmDrop.value, 0, 80, CHANT_DEFAULTS.headerBpmDrop));
     var fldSaramCdS = document.getElementById('set-saram-arati-cd');
     if (fldSaramCdS) chantSettings.saramAratiCountdown = fldSaramCdS.value !== 'off';
+    var fldPacingS = document.getElementById('set-pacing-version');
+    if (fldPacingS) chantSettings.pacingVersion = (fldPacingS.value === 'A' || fldPacingS.value === 'B') ? fldPacingS.value : 'C';
+    var fldWordGapS = document.getElementById('set-header-word-gap');
+    if (fldWordGapS) chantSettings.headerWordGapMs = Math.round(clampNum(fldWordGapS.value, 0, 500, CHANT_DEFAULTS.headerWordGapMs));
     if (fldFsText) chantSettings.fullscreenText = fldFsText.value;
     if (fldBreakMinutes) chantSettings.breakMinutes = Math.round(clampNum(fldBreakMinutes.value, 1, 120, CHANT_DEFAULTS.breakMinutes));
     if (fldTheme) chantSettings.theme = (fldTheme.value === 'light') ? 'light' : 'dark';
@@ -1141,7 +1172,16 @@
     var curChId = dataLayer.getCurrentChapterId();
     if (curChId !== null && dataLayer.getPage(currentPage)) {
       var savedState = animator.getState();
+      // Pacing versions differ in element COUNTS (C: one star per mātrā), so the
+      // position must be carried across the re-render as (line, fraction) — the
+      // same mapping the display-mode toggle uses — not as a raw index.
+      var savedLinePos = renderer.getLinePosition(savedState.currentIndex, savedState.progress);
       renderer.renderPage(dataLayer.getPage(currentPage));
+      if (savedState.currentIndex >= 0 && savedLinePos) {
+        var remapped = renderer.mapLinePosition(savedLinePos);
+        savedState.currentIndex = remapped.index;
+        savedState.progress = remapped.progress;
+      }
       animator.restore(savedState);
       renderer.prefetchPage(currentPage + 1, curChId);
       var rs = animator.getState();

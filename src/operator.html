@@ -387,6 +387,16 @@ hr { border: none; border-top: 1px solid #333; margin: 0; }
       <label for="set-header-bpm-drop">Header slowdown (BPM drop)</label>
       <input type="number" id="set-header-bpm-drop" min="0" max="80" step="1">
 
+      <label for="set-pacing-version">Pacing version</label>
+      <select id="set-pacing-version">
+        <option value="A">A — Parayana (even glide, as at the event)</option>
+        <option value="B">B — Guru/laghu rhythm (pointer dwells)</option>
+        <option value="C">C — Mātrā stars (constant pointer motion)</option>
+      </select>
+
+      <label for="set-header-word-gap">Header word gap (ms) — version B</label>
+      <input type="number" id="set-header-word-gap" min="0" max="500" step="1">
+
       <label for="set-saram-arati-cd">Countdown for Gita Sāram &amp; Ārati</label>
       <select id="set-saram-arati-cd">
         <option value="on">On (countdown before recitation)</option>

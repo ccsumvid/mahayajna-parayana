@@ -2,6 +2,7 @@
   "name": "gītā ārati",
   "iastName": "gītā ārati",
   "chapterNum": "gita_arati",
+  "defaultBpm": 320,
   "shloka": [
     {
       "shlokaNum": "",
@@ -40,9 +41,23 @@
           "sty": ""
         },
         {
-          "text": "sundara  supunītē || ōm  jaya ||",
-          "iast": "sundara  supunītē || ōm  jaya ||",
+          "text": "hari-hiya  kamala-vihāriṇi",
+          "iast": "hari-hiya  kamala-vihāriṇi",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "sundara  supunītē",
+          "iast": "sundara  supunītē",
           "swhtsp": "",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "ōm  jaya  bhagavadgītē",
+          "iast": "ōm  jaya  bhagavadgītē",
+          "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
         }
@@ -57,41 +72,39 @@
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "2",
-      "entry": [
+        },
         {
           "text": "mayya  kāmāsakti  harā |",
           "iast": "mayya  kāmāsakti  harā |",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "2",
-      "entry": [
+        },
         {
           "text": "tattvajñāna-vikāśini",
           "iast": "tattvajñāna-vikāśini",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ],
-      "repeat": 2
-    },
-    {
-      "shlokaNum": "2",
-      "entry": [
+        },
         {
-          "text": "vidyā  brahma  parā || ōm  jaya ||",
-          "iast": "vidyā  brahma  parā || ōm  jaya ||",
+          "text": "tattvajñāna-vikāśini",
+          "iast": "tattvajñāna-vikāśini",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "vidyā  brahma  parā",
+          "iast": "vidyā  brahma  parā",
           "swhtsp": "",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "ōm  jaya  bhagavadgītē",
+          "iast": "ōm  jaya  bhagavadgītē",
+          "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
         }
@@ -106,41 +119,39 @@
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "3",
-      "entry": [
+        },
         {
           "text": "mayya  nirmala  malahārī |",
           "iast": "mayya  nirmala  malahārī |",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "3",
-      "entry": [
+        },
         {
           "text": "śaraṇa-rahasya-pradāyini",
           "iast": "śaraṇa-rahasya-pradāyini",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ],
-      "repeat": 2
-    },
-    {
-      "shlokaNum": "3",
-      "entry": [
+        },
         {
-          "text": "saba  vidhi  sukhakārī || ōm  jaya ||",
-          "iast": "saba  vidhi  sukhakārī || ōm  jaya ||",
+          "text": "śaraṇa-rahasya-pradāyini",
+          "iast": "śaraṇa-rahasya-pradāyini",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "saba  vidhi  sukhakārī",
+          "iast": "saba  vidhi  sukhakārī",
           "swhtsp": "",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "ōm  jaya  bhagavadgītē",
+          "iast": "ōm  jaya  bhagavadgītē",
+          "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
         }
@@ -155,41 +166,39 @@
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "4",
-      "entry": [
+        },
         {
           "text": "mayya  kāriṇi  mōda  sadā |",
           "iast": "mayya  kāriṇi  mōda  sadā |",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "4",
-      "entry": [
+        },
         {
           "text": "bhava-bhaya-hāriṇi  tāriṇi",
           "iast": "bhava-bhaya-hāriṇi  tāriṇi",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ],
-      "repeat": 2
-    },
-    {
-      "shlokaNum": "4",
-      "entry": [
+        },
         {
-          "text": "paramānandapradā || ōm  jaya ||",
-          "iast": "paramānandapradā || ōm  jaya ||",
+          "text": "bhava-bhaya-hāriṇi  tāriṇi",
+          "iast": "bhava-bhaya-hāriṇi  tāriṇi",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "paramānandapradā",
+          "iast": "paramānandapradā",
           "swhtsp": "",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "ōm  jaya  bhagavadgītē",
+          "iast": "ōm  jaya  bhagavadgītē",
+          "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
         }
@@ -204,41 +213,39 @@
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "5",
-      "entry": [
+        },
         {
           "text": "mayya  nāśini  tama-rajanī |",
           "iast": "mayya  nāśini  tama-rajanī |",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "5",
-      "entry": [
+        },
         {
           "text": "daivī  sadguṇadāyini",
           "iast": "daivī  sadguṇadāyini",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ],
-      "repeat": 2
-    },
-    {
-      "shlokaNum": "5",
-      "entry": [
+        },
         {
-          "text": "hari-rasikā  sajanī || ōm  jaya ||",
-          "iast": "hari-rasikā  sajanī || ōm  jaya ||",
+          "text": "daivī  sadguṇadāyini",
+          "iast": "daivī  sadguṇadāyini",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "hari-rasikā  sajanī",
+          "iast": "hari-rasikā  sajanī",
           "swhtsp": "",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "ōm  jaya  bhagavadgītē",
+          "iast": "ōm  jaya  bhagavadgītē",
+          "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
         }
@@ -253,41 +260,39 @@
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "6",
-      "entry": [
+        },
         {
           "text": "mayya  hari-mukha  kī  vāṇī |",
           "iast": "mayya  hari-mukha  kī  vāṇī |",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "6",
-      "entry": [
+        },
         {
           "text": "sakala  śāstra  kī  svāmini",
           "iast": "sakala  śāstra  kī  svāmini",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ],
-      "repeat": 2
-    },
-    {
-      "shlokaNum": "6",
-      "entry": [
+        },
         {
-          "text": "śrutiyō  kī  rānī || ōm  jaya ||",
-          "iast": "śrutiyō  kī  rānī || ōm  jaya ||",
+          "text": "sakala  śāstra  kī  svāmini",
+          "iast": "sakala  śāstra  kī  svāmini",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "śrutiyō  kī  rānī",
+          "iast": "śrutiyō  kī  rānī",
           "swhtsp": "",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "ōm  jaya  bhagavadgītē",
+          "iast": "ōm  jaya  bhagavadgītē",
+          "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
         }
@@ -302,41 +307,39 @@
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "7",
-      "entry": [
+        },
         {
           "text": "mayya  mātu  kr̥pā  kījai |",
           "iast": "mayya  mātu  kr̥pā  kījai |",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ]
-    },
-    {
-      "shlokaNum": "7",
-      "entry": [
+        },
         {
           "text": "hari-pada-prēma  pradāyini",
           "iast": "hari-pada-prēma  pradāyini",
           "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
-        }
-      ],
-      "repeat": 2
-    },
-    {
-      "shlokaNum": "7",
-      "entry": [
+        },
         {
-          "text": "apanō  kara  lījai || ōm  jaya ||",
-          "iast": "apanō  kara  lījai || ōm  jaya ||",
+          "text": "hari-pada-prēma  pradāyini",
+          "iast": "hari-pada-prēma  pradāyini",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "apanō  kara  lījai",
+          "iast": "apanō  kara  lījai",
           "swhtsp": "",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "ōm  jaya  bhagavadgītē",
+          "iast": "ōm  jaya  bhagavadgītē",
+          "swhtsp": "l",
           "shlNbr": "00",
           "sty": ""
         }
@@ -367,13 +370,34 @@
           "sty": ""
         },
         {
-          "text": "sundara  supunītē || ōm  jaya ||",
-          "iast": "sundara  supunītē || ōm  jaya ||",
+          "text": "hari-hiya  kamala-vihāriṇi",
+          "iast": "hari-hiya  kamala-vihāriṇi",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        },
+        {
+          "text": "sundara  supunītē",
+          "iast": "sundara  supunītē",
           "swhtsp": "",
           "shlNbr": "00",
           "sty": ""
         }
-      ]
+      ],
+      "repeat": 2
+    },
+    {
+      "shlokaNum": "pallavi",
+      "entry": [
+        {
+          "text": "ōm  jaya  bhagavadgītē",
+          "iast": "ōm  jaya  bhagavadgītē",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        }
+      ],
+      "repeat": 3
     }
   ]
 }
