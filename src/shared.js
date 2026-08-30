@@ -808,16 +808,17 @@ const renderer = (function() {
   //   anustubhBeats / tristubhBeats — meter-aware verse line-end pause (#20/#21; tristubh 4.5 per #36.2)
   // A page line may also carry an explicit `pauseBeats` that overrides the meter default (#36.3).
   //   uvacaPauseBeats — pause after each "uvāca" speaker label (#39; default 4)
-  //   perSyllableTiming — Case 2 (team 07-30): every syllable span carries its
-  //     OWN guru/laghu weight, so the pointer dwells 2 mātrās on a guru and 1 on
-  //     a laghu, matching the chant's real rhythm. OFF = the original line-average
-  //     glide (every asterisk gets the line's mean beat value). Line totals are
-  //     identical either way — only the motion WITHIN the line changes.
+  //   pacingMode — the A/B/C pacing version (team 07-30/08-30). Line totals are
+  //     identical in all three — only the motion WITHIN a line changes:
+  //     'A' — parayana baseline: even glide; English = one span per line.
+  //     'B' — per-syllable guru/laghu dwell; English = one span per syllable.
+  //     'C' — mātrā stars: one star per MĀTRĀ, constant pointer motion;
+  //           English renders as in B (book text untouched).
   //   headerWordGapMs — tiny pause inserted after the last syllable of each WORD
   //     on chanted header lines (team 07-30: "atha · śrīmad · bhagavad ·  gītā"),
   //     plus a visible gap between the word groups of asterisks. Milliseconds,
   //     fixed (not tempo-scaled). 0 disables.
-  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3, perSyllableTiming: true, headerWordGapMs: 2 };
+  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3, pacingMode: 'C', headerWordGapMs: 2 };
   // Sections whose title HEADER slide is a plain static title (text in both
   // display modes, no pointer). Kept minimal: only the new Pūrṇam / Samarpana
   // titles — existing section headers keep their current behavior.
@@ -842,7 +843,8 @@ const renderer = (function() {
     if (typeof cfg.anustubhBeats === 'number') paceConfig.anustubhBeats = cfg.anustubhBeats;
     if (typeof cfg.tristubhBeats === 'number') paceConfig.tristubhBeats = cfg.tristubhBeats;
     if (typeof cfg.uvacaPauseBeats === 'number') paceConfig.uvacaPauseBeats = cfg.uvacaPauseBeats;
-    if (typeof cfg.perSyllableTiming === 'boolean') paceConfig.perSyllableTiming = cfg.perSyllableTiming;
+    if (cfg.pacingMode === 'A' || cfg.pacingMode === 'B' || cfg.pacingMode === 'C') paceConfig.pacingMode = cfg.pacingMode;
+    else if (typeof cfg.perSyllableTiming === 'boolean') paceConfig.pacingMode = cfg.perSyllableTiming ? 'B' : 'A'; // legacy
     if (typeof cfg.headerWordGapMs === 'number') paceConfig.headerWordGapMs = cfg.headerWordGapMs;
   }
 
@@ -902,27 +904,37 @@ const renderer = (function() {
           elements.push(span);
           lineDiv.appendChild(span);
         } else {
-          // Asterisk mode: one ✱ per syllable, all animated. Word ends get a
-          // visible gap between the asterisk groups and a small extra pause
-          // (headerWordGapMs) so the words of a header read separately (#07-30).
+          // Asterisk mode: all animated. Word ends get a visible gap between
+          // the asterisk groups and a small extra pause (headerWordGapMs) so
+          // the words of a header read separately (#07-30).
+          // Mode C: one ✱ per MĀTRĀ (a guru contributes two identical stars,
+          // each worth 1 mātrā) — constant pointer motion. A/B: one ✱ per
+          // syllable with the token's own beats (headers were never averaged).
           for (let ti = 0; ti < hTokens.length; ti++) {
             const token = hTokens[ti];
-            const span = document.createElement('span');
-            span.dataset.beats = token.beats;
             if (token.isMarker) {
+              const span = document.createElement('span');
+              span.dataset.beats = token.beats;
               span.className = 'verse-marker';
               span.textContent = token.text;
               elements.push(span);
-            } else {
-              span.className = 'syllable' + (token.wordEnd ? ' word-end' : '');
-              if (token.wordEnd && paceConfig.headerWordGapMs > 0) {
+              lineDiv.appendChild(span);
+              continue;
+            }
+            const starCount = paceConfig.pacingMode === 'C' ? Math.max(1, Math.round(token.beats)) : 1;
+            for (let mi = 0; mi < starCount; mi++) {
+              const span = document.createElement('span');
+              span.dataset.beats = paceConfig.pacingMode === 'C' ? 1 : token.beats;
+              const isLastOfToken = mi === starCount - 1;
+              span.className = 'syllable' + (token.wordEnd && isLastOfToken ? ' word-end' : '');
+              if (token.wordEnd && isLastOfToken && paceConfig.headerWordGapMs > 0) {
                 span.dataset.extraMs = paceConfig.headerWordGapMs;
               }
               span.dataset.index = elements.length;
               span.textContent = '✱';
               elements.push(span);
+              lineDiv.appendChild(span);
             }
-            lineDiv.appendChild(span);
           }
         }
 
@@ -962,7 +974,7 @@ const renderer = (function() {
         // (index.html), and fixes the "Dhyana line mixups" (feedback #10–19)
         // that came from breaking a pāda at the wrong mid-pāda point.
         const displayText = line.iast || line.text;
-        if (paceConfig.perSyllableTiming) {
+        if (paceConfig.pacingMode !== 'A') {
           const eAnalyzer = /[\u0900-\u097F]/.test(displayText) ? prosody : iastProsody;
           const eTokens = eAnalyzer.analyzeLine(displayText);
           for (let ei = 0; ei < eTokens.length; ei++) {
@@ -1008,22 +1020,30 @@ const renderer = (function() {
 
         for (let ti = 0; ti < tokens.length; ti++) {
           const token = tokens[ti];
-          const span = document.createElement('span');
 
           if (token.isMarker) {
+            const span = document.createElement('span');
             span.dataset.beats = token.beats;
             span.className = 'verse-marker';
             span.textContent = token.text;
             elements.push(span);
-          } else {
-            span.dataset.beats = paceConfig.perSyllableTiming ? token.beats : avgBeats;
+            lineDiv.appendChild(span);
+            continue;
+          }
+
+          // By pacing version (line totals identical in all): A = average glide,
+          // B = own guru/laghu weight, C = one star per mātrā (constant motion).
+          const starCount = paceConfig.pacingMode === 'C' ? Math.max(1, Math.round(token.beats)) : 1;
+          for (let mi = 0; mi < starCount; mi++) {
+            const span = document.createElement('span');
+            span.dataset.beats = paceConfig.pacingMode === 'C' ? 1
+              : (paceConfig.pacingMode === 'B' ? token.beats : avgBeats);
             span.className = 'syllable';
             span.dataset.index = elements.length;
             span.textContent = '\u2731';
             elements.push(span);
+            lineDiv.appendChild(span);
           }
-
-          lineDiv.appendChild(span);
         }
       }
 

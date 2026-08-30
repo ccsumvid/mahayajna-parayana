@@ -29,8 +29,7 @@
     sarvadharmanPauseBeats: 3, // pause between colophon and sarvadharmān slide (mātrās) — #40
     headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
     saramAratiCountdown: true, // countdown before Gita Sāram / Ārati recitation (OFF = header -> recitation directly)
-    pacingVersion: 'B',      // A = parayana baseline (even glide, no word gaps);
-                             // B = experimental (per-syllable guru/laghu timing, syllable display, header word gaps)
+    pacingVersion: 'C',      // A = parayana baseline (even glide) · B = per-syllable dwell · C = mātrā stars, constant pointer
     headerWordGapMs: 2,      // pause (ms) after each WORD on chanted header lines — applies in version B only; 0 = off
     theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
     fullscreenText: '',      // announcement text for the full-screen text box
@@ -78,7 +77,7 @@
           if (typeof parsed.sarvadharmanPauseBeats === 'number') merged.sarvadharmanPauseBeats = parsed.sarvadharmanPauseBeats;
           if (typeof parsed.headerBpmDrop === 'number') merged.headerBpmDrop = parsed.headerBpmDrop;
           if (typeof parsed.saramAratiCountdown === 'boolean') merged.saramAratiCountdown = parsed.saramAratiCountdown;
-          if (parsed.pacingVersion === 'A' || parsed.pacingVersion === 'B') merged.pacingVersion = parsed.pacingVersion;
+          if (parsed.pacingVersion === 'A' || parsed.pacingVersion === 'B' || parsed.pacingVersion === 'C') merged.pacingVersion = parsed.pacingVersion;
           else if (typeof parsed.perSyllableTiming === 'boolean') merged.pacingVersion = parsed.perSyllableTiming ? 'B' : 'A'; // legacy toggle
           if (typeof parsed.headerWordGapMs === 'number') merged.headerWordGapMs = parsed.headerWordGapMs;
           if (parsed.theme === 'dark' || parsed.theme === 'light') merged.theme = parsed.theme;
@@ -137,9 +136,16 @@
       anustubhBeats: chantSettings.anustubhBeats,
       tristubhBeats: chantSettings.tristubhBeats,
       uvacaPauseBeats: chantSettings.uvacaPauseBeats,
-      // The A/B switch maps onto the two renderer knobs: version A reproduces
-      // the parayana-baseline behavior exactly (even glide, no word gaps).
-      perSyllableTiming: chantSettings.pacingVersion !== 'A',
+      // A/B/C switch: A reproduces the parayana baseline exactly (even glide,
+      // no word gaps); B = per-syllable dwell; C = mātrā stars.
+      pacingMode: chantSettings.pacingVersion,
+      headerWordGapMs: chantSettings.pacingVersion !== 'A' ? chantSettings.headerWordGapMs : 0
+    });
+    // The projector renders its own copy of every page, and versions differ in
+    // STAR COUNTS (C: one per mātrā) — it must always share the operator's
+    // pacing config or pointer indexes would land on the wrong element.
+    sendToProjector('pace-config', {
+      pacingMode: chantSettings.pacingVersion,
       headerWordGapMs: chantSettings.pacingVersion !== 'A' ? chantSettings.headerWordGapMs : 0
     });
     // Projector theme — dark (black bg) / light (white bg) — #37
@@ -1050,7 +1056,7 @@
     var fldSaramCd = document.getElementById('set-saram-arati-cd');
     if (fldSaramCd) fldSaramCd.value = chantSettings.saramAratiCountdown ? 'on' : 'off';
     var fldPacing = document.getElementById('set-pacing-version');
-    if (fldPacing) fldPacing.value = chantSettings.pacingVersion === 'A' ? 'A' : 'B';
+    if (fldPacing) fldPacing.value = chantSettings.pacingVersion;
     var fldWordGap = document.getElementById('set-header-word-gap');
     if (fldWordGap) fldWordGap.value = chantSettings.headerWordGapMs;
     if (fldFsText) fldFsText.value = chantSettings.fullscreenText || '';
@@ -1110,7 +1116,7 @@
     var fldSaramCdS = document.getElementById('set-saram-arati-cd');
     if (fldSaramCdS) chantSettings.saramAratiCountdown = fldSaramCdS.value !== 'off';
     var fldPacingS = document.getElementById('set-pacing-version');
-    if (fldPacingS) chantSettings.pacingVersion = fldPacingS.value === 'A' ? 'A' : 'B';
+    if (fldPacingS) chantSettings.pacingVersion = (fldPacingS.value === 'A' || fldPacingS.value === 'B') ? fldPacingS.value : 'C';
     var fldWordGapS = document.getElementById('set-header-word-gap');
     if (fldWordGapS) chantSettings.headerWordGapMs = Math.round(clampNum(fldWordGapS.value, 0, 500, CHANT_DEFAULTS.headerWordGapMs));
     if (fldFsText) chantSettings.fullscreenText = fldFsText.value;
@@ -1162,7 +1168,16 @@
     var curChId = dataLayer.getCurrentChapterId();
     if (curChId !== null && dataLayer.getPage(currentPage)) {
       var savedState = animator.getState();
+      // Pacing versions differ in element COUNTS (C: one star per mātrā), so the
+      // position must be carried across the re-render as (line, fraction) — the
+      // same mapping the display-mode toggle uses — not as a raw index.
+      var savedLinePos = renderer.getLinePosition(savedState.currentIndex, savedState.progress);
       renderer.renderPage(dataLayer.getPage(currentPage));
+      if (savedState.currentIndex >= 0 && savedLinePos) {
+        var remapped = renderer.mapLinePosition(savedLinePos);
+        savedState.currentIndex = remapped.index;
+        savedState.progress = remapped.progress;
+      }
       animator.restore(savedState);
       renderer.prefetchPage(currentPage + 1, curChId);
       var rs = animator.getState();
