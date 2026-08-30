@@ -334,7 +334,21 @@
           "shlNbr": "00",
           "sty": ""
         }
-      ]
+      ],
+      "repeat": 2
+    },
+    {
+      "shlokaNum": "pallavi",
+      "entry": [
+        {
+          "text": "ōm  jaya  bhagavadgītē",
+          "iast": "ōm  jaya  bhagavadgītē",
+          "swhtsp": "l",
+          "shlNbr": "00",
+          "sty": ""
+        }
+      ],
+      "repeat": 3
     }
   ]
 }
