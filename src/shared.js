@@ -735,6 +735,17 @@ const dataLayer = (function() {
     currentChapterId = id;
     chapterName = data.name || '';
     pages = groupIntoPages(data.shloka || [], data.lineEndPauseBeats);
+    // Chapters 1–18: mark the LAST sloka page (the verse page right before the
+    // "om tatsaditi" closer) so the renderer can apply the configurable
+    // Pause-After-Last-Sloka (team 09-02) to its final line.
+    var chNum = parseInt(id, 10);
+    if (!isNaN(chNum) && chNum >= 1 && chNum <= 18) {
+      for (var pi = 0; pi < pages.length - 1; pi++) {
+        if (pages[pi + 1].isCloser && !pages[pi].isHeader && !pages[pi].isCloser) {
+          pages[pi].lastSlokaOfChapter = true;
+        }
+      }
+    }
 
     // Prefetch next chapter in background
     var idx = CHAPTER_ORDER.indexOf(id);
@@ -827,7 +838,9 @@ const renderer = (function() {
   //     on chanted header lines (team 07-30: "atha · śrīmad · bhagavad ·  gītā"),
   //     plus a visible gap between the word groups of asterisks. Milliseconds,
   //     fixed (not tempo-scaled). 0 disables.
-  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3, pacingMode: 'C', headerWordGapMs: 2 };
+  //   lastSlokaPauseBeats — pause (mātrās) after the LAST sloka of each Gita
+  //     chapter (1–18), before the "om tatsaditi" slide (team 09-02; 3–7, default 5).
+  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3, pacingMode: 'C', headerWordGapMs: 2, lastSlokaPauseBeats: 5 };
   // Sections whose title HEADER slide is a plain static title (text in both
   // display modes, no pointer). Kept minimal: only the new Pūrṇam / Samarpana
   // titles — existing section headers keep their current behavior.
@@ -855,6 +868,7 @@ const renderer = (function() {
     if (cfg.pacingMode === 'A' || cfg.pacingMode === 'B' || cfg.pacingMode === 'C') paceConfig.pacingMode = cfg.pacingMode;
     else if (typeof cfg.perSyllableTiming === 'boolean') paceConfig.pacingMode = cfg.perSyllableTiming ? 'B' : 'A'; // legacy
     if (typeof cfg.headerWordGapMs === 'number') paceConfig.headerWordGapMs = cfg.headerWordGapMs;
+    if (typeof cfg.lastSlokaPauseBeats === 'number') paceConfig.lastSlokaPauseBeats = cfg.lastSlokaPauseBeats;
   }
 
   // Double-buffer: render next page into the hidden buffer, swap on advance
@@ -1091,6 +1105,18 @@ const renderer = (function() {
       }
 
       target.appendChild(lineDiv);
+    }
+
+    // Pause-After-Last-Sloka (team 09-02): on the last sloka page of a Gita
+    // chapter, the FINAL line's end pause uses the configurable value instead
+    // of the meter default, giving breathing room before "om tatsaditi".
+    if (pageData.lastSlokaOfChapter) {
+      for (let li = elements.length - 1; li >= 0; li--) {
+        if (elements[li].dataset.lineEnd) {
+          elements[li].dataset.lineEndPauseBeats = String(paceConfig.lastSlokaPauseBeats);
+          break;
+        }
+      }
     }
 
     // Stamp a mode-independent line number on every element (#8): element indices

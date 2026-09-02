@@ -27,6 +27,7 @@
     uvacaPauseBeats: 3,      // pause after each uvāca speaker label (mātrās) — team table 2026-07-15
     colophonPauseSeconds: 2, // pause before the colophon ("om tatsaditi") slide — #41
     sarvadharmanPauseBeats: 3, // pause between colophon and sarvadharmān slide (mātrās) — #40
+    lastSlokaPauseBeats: 5,  // pause after the LAST sloka of ch 1–18, before "om tatsaditi" (team 09-02; 3–7)
     headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
     saramAratiCountdown: true, // countdown before Gita Sāram / Ārati recitation (OFF = header -> recitation directly)
     pacingVersion: 'C',      // A = parayana baseline (even glide) · B = per-syllable dwell · C = mātrā stars, constant pointer
@@ -50,6 +51,7 @@
       uvacaPauseBeats: CHANT_DEFAULTS.uvacaPauseBeats,
       colophonPauseSeconds: CHANT_DEFAULTS.colophonPauseSeconds,
       sarvadharmanPauseBeats: CHANT_DEFAULTS.sarvadharmanPauseBeats,
+      lastSlokaPauseBeats: CHANT_DEFAULTS.lastSlokaPauseBeats,
       headerBpmDrop: CHANT_DEFAULTS.headerBpmDrop,
       saramAratiCountdown: CHANT_DEFAULTS.saramAratiCountdown,
       pacingVersion: CHANT_DEFAULTS.pacingVersion,
@@ -75,6 +77,7 @@
           if (typeof parsed.uvacaPauseBeats === 'number') merged.uvacaPauseBeats = parsed.uvacaPauseBeats;
           if (typeof parsed.colophonPauseSeconds === 'number') merged.colophonPauseSeconds = parsed.colophonPauseSeconds;
           if (typeof parsed.sarvadharmanPauseBeats === 'number') merged.sarvadharmanPauseBeats = parsed.sarvadharmanPauseBeats;
+          if (typeof parsed.lastSlokaPauseBeats === 'number') merged.lastSlokaPauseBeats = parsed.lastSlokaPauseBeats;
           if (typeof parsed.headerBpmDrop === 'number') merged.headerBpmDrop = parsed.headerBpmDrop;
           if (typeof parsed.saramAratiCountdown === 'boolean') merged.saramAratiCountdown = parsed.saramAratiCountdown;
           if (parsed.pacingVersion === 'A' || parsed.pacingVersion === 'B' || parsed.pacingVersion === 'C') merged.pacingVersion = parsed.pacingVersion;
@@ -136,6 +139,7 @@
       anustubhBeats: chantSettings.anustubhBeats,
       tristubhBeats: chantSettings.tristubhBeats,
       uvacaPauseBeats: chantSettings.uvacaPauseBeats,
+      lastSlokaPauseBeats: chantSettings.lastSlokaPauseBeats,
       // A/B/C switch: A reproduces the parayana baseline exactly (even glide,
       // no word gaps); B = per-syllable dwell; C = mātrā stars.
       pacingMode: chantSettings.pacingVersion,
@@ -523,9 +527,11 @@
             projectorBlanked = true;
           } else {
             // Begin recitation directly at the first content page — the title
-            // already had its display time before the countdown.
+            // already had its display time before the countdown. Manual
+            // sections (Sāram/Ārati in B/C) only SHOW the page: the presenter
+            // drives with Next/Previous, the pointer stays off.
             if (fc < tot) showPage(fc);
-            animator.play();
+            if (!inManualSection(secId)) animator.play();
           }
         };
         setTimeout(function() {
@@ -552,6 +558,9 @@
         animator.play();
       });
     } else {
+      // Manual sections: Play never starts the pointer — slides are advanced
+      // with Next/Previous only.
+      if (inManualSection(dataLayer.getCurrentChapterId())) return;
       animator.play();
     }
   }
@@ -620,6 +629,13 @@
   // Sāram/Ārati flow: after their countdown the projector holds on a BLANK slide
   // until the operator acts (Play reveals and starts; any page change reveals).
   var HOLD_BLANK_AFTER_COUNTDOWN = { gita_saram: true, gita_arati: true };
+  // Team 09-02: in versions B/C, Gita Sāram & Ārati are PRESENTER-DRIVEN —
+  // no automatic pointer movement or auto-advance; the presenter flips slides
+  // with Next/Previous. (Version A keeps its parayana behavior untouched.)
+  var MANUAL_POINTER_OFF = { gita_saram: true, gita_arati: true };
+  function inManualSection(chId) {
+    return MANUAL_POINTER_OFF[chId] === true && chantSettings.pacingVersion !== 'A';
+  }
   var blankHoldActive = false;
 
   // --- Auto-advance: when animator reaches end of page, go to next and resume ---
@@ -690,7 +706,7 @@
               var total = dataLayer.getPageCount();
               if (firstContent < total) showPage(firstContent);
               syncProjectorPage();
-              animator.play();
+              if (!inManualSection(nextId)) animator.play();
             };
             // Optional countdown skip (Settings) for Gita Sāram / Ārati only:
             // OFF = header -> recitation directly.
@@ -1056,6 +1072,8 @@
     if (fldUvacaPause) fldUvacaPause.value = chantSettings.uvacaPauseBeats;
     if (fldColophonPause) fldColophonPause.value = chantSettings.colophonPauseSeconds;
     if (fldSarvaPause) fldSarvaPause.value = chantSettings.sarvadharmanPauseBeats;
+    var fldLastSloka = document.getElementById('set-last-sloka-pause');
+    if (fldLastSloka) fldLastSloka.value = chantSettings.lastSlokaPauseBeats;
     if (fldHeaderBpmDrop) fldHeaderBpmDrop.value = chantSettings.headerBpmDrop;
     var fldSaramCd = document.getElementById('set-saram-arati-cd');
     if (fldSaramCd) fldSaramCd.value = chantSettings.saramAratiCountdown ? 'on' : 'off';
@@ -1116,6 +1134,8 @@
     if (fldUvacaPause) chantSettings.uvacaPauseBeats = clampNum(fldUvacaPause.value, 0, 12, CHANT_DEFAULTS.uvacaPauseBeats);
     if (fldColophonPause) chantSettings.colophonPauseSeconds = clampNum(fldColophonPause.value, 0, 10, CHANT_DEFAULTS.colophonPauseSeconds);
     if (fldSarvaPause) chantSettings.sarvadharmanPauseBeats = clampNum(fldSarvaPause.value, 0, 12, CHANT_DEFAULTS.sarvadharmanPauseBeats);
+    var fldLastSlokaS = document.getElementById('set-last-sloka-pause');
+    if (fldLastSlokaS) chantSettings.lastSlokaPauseBeats = clampNum(fldLastSlokaS.value, 3, 7, CHANT_DEFAULTS.lastSlokaPauseBeats);
     if (fldHeaderBpmDrop) chantSettings.headerBpmDrop = Math.round(clampNum(fldHeaderBpmDrop.value, 0, 80, CHANT_DEFAULTS.headerBpmDrop));
     var fldSaramCdS = document.getElementById('set-saram-arati-cd');
     if (fldSaramCdS) chantSettings.saramAratiCountdown = fldSaramCdS.value !== 'off';
