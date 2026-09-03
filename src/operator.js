@@ -14,7 +14,7 @@
   // older revision are migrated on load: per-section tempo overrides are dropped
   // (they were frozen pre-fill hints, see saveSettings), and pause/slow-down
   // values still at their OLD defaults are upgraded to the new defaults.
-  var SETTINGS_REV = 3;
+  var SETTINGS_REV = 4;
 
   var CHANT_DEFAULTS = {
     colophonBpmDrop: 20,     // internal bpm drop on colophon / ending pages
@@ -31,7 +31,7 @@
     headerBpmDrop: 40,       // internal bpm drop on header slides (= 10 BPM), all chapters — #47
     saramAratiCountdown: true, // countdown before Gita Sāram / Ārati recitation (OFF = header -> recitation directly)
     pacingVersion: 'C',      // A = parayana baseline (even glide) · B = per-syllable dwell · C = mātrā stars, constant pointer
-    headerWordGapMs: 2,      // pause (ms) after each WORD on chanted header lines — applies in version B only; 0 = off
+    headerWordGapMs: 0,      // pause (ms) after each WORD on chanted header lines — applies in version B only; 0 = off
     theme: 'dark',           // projector theme: 'dark' (black bg) or 'light' (white bg) — #37
     fullscreenText: '',      // announcement text for the full-screen text box
     breakMinutes: 10,        // break timer duration (minutes)
@@ -93,6 +93,7 @@
             if (merged.uvacaPauseBeats === 2 || merged.uvacaPauseBeats === 4) merged.uvacaPauseBeats = CHANT_DEFAULTS.uvacaPauseBeats;
             if (merged.headerBpmDrop === 20) merged.headerBpmDrop = CHANT_DEFAULTS.headerBpmDrop;
             if (merged.countdownSeconds === 5) merged.countdownSeconds = CHANT_DEFAULTS.countdownSeconds;  // 5 → 3, team 07-24
+            if (merged.headerWordGapMs === 2) merged.headerWordGapMs = CHANT_DEFAULTS.headerWordGapMs;  // 2 → 0, team 09-02
           }
           if (isCurrentRev && parsed.sectionBpm && typeof parsed.sectionBpm === 'object') {
             for (var k in parsed.sectionBpm) {

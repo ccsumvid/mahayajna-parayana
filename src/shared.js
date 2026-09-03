@@ -840,7 +840,7 @@ const renderer = (function() {
   //     fixed (not tempo-scaled). 0 disables.
   //   lastSlokaPauseBeats — pause (mātrās) after the LAST sloka of each Gita
   //     chapter (1–18), before the "om tatsaditi" slide (team 09-02; 3–7, default 5).
-  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3, pacingMode: 'C', headerWordGapMs: 2, lastSlokaPauseBeats: 5 };
+  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3, pacingMode: 'C', headerWordGapMs: 0, lastSlokaPauseBeats: 5 };
   // Sections whose title HEADER slide is a plain static title (text in both
   // display modes, no pointer). Kept minimal: only the new Pūrṇam / Samarpana
   // titles — existing section headers keep their current behavior.
@@ -887,6 +887,10 @@ const renderer = (function() {
     target.textContent = '';
     // Colophon (closer) pages are center-aligned; all other pages left-aligned.
     target.classList.toggle('centered', !!pageData.isCloser);
+    // Om tatsaditi slide in ENGLISH script: render at 70% so the namaskara
+    // instruction card never overlaps the long transliterated lines (team
+    // 09-02). All pacing versions; asterisk mode unaffected.
+    target.classList.toggle('closer-zoom', !!pageData.isCloser && currentMode === 'english');
     const elements = [];
 
     for (const line of pageData.lines) {
@@ -981,6 +985,14 @@ const renderer = (function() {
       const analyzeText = hasDevanagari ? line.text : (line.iast || line.text);
       const analyzer = hasDevanagari ? prosody : iastProsody;
 
+      // Version C hybrid (team 09-02): verse ślokas render like version A —
+      // even glide in asterisk mode, single-span sweep in English — everywhere
+      // EXCEPT Gita Sāram/Ārati (kept as-is) and the om-tatsaditi closers
+      // (mātrā stars). Section headers keep their C treatment above.
+      const vSection = dataLayer.getCurrentChapterId();
+      const effMode = (paceConfig.pacingMode === 'C' && !pageData.isCloser &&
+        vSection !== 'gita_saram' && vSection !== 'gita_arati') ? 'A' : paceConfig.pacingMode;
+
       if (currentMode === 'english') {
         // English mode: show IAST text.
         // perSyllableTiming ON (Case 2, team 07-30): one span PER SYLLABLE of
@@ -997,7 +1009,7 @@ const renderer = (function() {
         // (index.html), and fixes the "Dhyana line mixups" (feedback #10–19)
         // that came from breaking a pāda at the wrong mid-pāda point.
         const displayText = line.iast || line.text;
-        if (paceConfig.pacingMode !== 'A') {
+        if (effMode !== 'A') {
           const eAnalyzer = /[\u0900-\u097F]/.test(displayText) ? prosody : iastProsody;
           const eTokens = eAnalyzer.analyzeLine(displayText);
           for (let ei = 0; ei < eTokens.length; ei++) {
@@ -1019,13 +1031,29 @@ const renderer = (function() {
         } else {
           const tokens = analyzer.analyzeLine(analyzeText);
           const totalBeats = tokens.reduce((sum, t) => sum + t.beats, 0);
+          // Version A: the whole line is ONE swept span. A trailing sloka
+          // NUMBER (||N||) is split into a separate non-animated tail span so
+          // the pointer's sweep ends at the last chanted syllable and never
+          // travels over the digits (team 09-02). Timing is unchanged: the
+          // number's mātrās remain inside totalBeats on the swept span.
+          // Mid-line dandas and non-numeric markers stay in the swept text.
+          let sweepText = displayText;
+          let tailText = null;
+          const mTail = displayText.match(/^(.*?)\s*(\|\|\s*\d+\s*\|\|)\s*$/);
+          if (mTail && mTail[1]) { sweepText = mTail[1]; tailText = mTail[2]; }
           const span = document.createElement('span');
           span.className = 'syllable';
           span.dataset.index = elements.length;
           span.dataset.beats = totalBeats;
-          span.textContent = displayText;
+          span.textContent = sweepText;
           elements.push(span);
           lineDiv.appendChild(span);
+          if (tailText) {
+            const tail = document.createElement('span');
+            tail.className = 'line-number-tail';
+            tail.textContent = tailText;
+            lineDiv.appendChild(tail);
+          }
         }
       } else {
         // Asterisk mode: one asterisk per syllable.
@@ -1056,11 +1084,11 @@ const renderer = (function() {
 
           // By pacing version (line totals identical in all): A = average glide,
           // B = own guru/laghu weight, C = one star per mātrā (constant motion).
-          const starCount = paceConfig.pacingMode === 'C' ? Math.max(1, Math.round(token.beats)) : 1;
+          const starCount = effMode === 'C' ? Math.max(1, Math.round(token.beats)) : 1;
           for (let mi = 0; mi < starCount; mi++) {
             const span = document.createElement('span');
-            span.dataset.beats = paceConfig.pacingMode === 'C' ? 1
-              : (paceConfig.pacingMode === 'B' ? token.beats : avgBeats);
+            span.dataset.beats = effMode === 'C' ? 1
+              : (effMode === 'B' ? token.beats : avgBeats);
             span.className = 'syllable';
             span.dataset.index = elements.length;
             span.textContent = '\u2731';
