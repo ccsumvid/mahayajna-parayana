@@ -840,7 +840,7 @@ const renderer = (function() {
   //     fixed (not tempo-scaled). 0 disables.
   //   lastSlokaPauseBeats — pause (mātrās) after the LAST sloka of each Gita
   //     chapter (1–18), before the "om tatsaditi" slide (team 09-02; 3–7, default 5).
-  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3, pacingMode: 'C', headerWordGapMs: 2, lastSlokaPauseBeats: 5 };
+  const paceConfig = { headerPauseBeats: 3, anustubhBeats: 2, tristubhBeats: 3, uvacaPauseBeats: 3, pacingMode: 'C', headerWordGapMs: 0, lastSlokaPauseBeats: 5 };
   // Sections whose title HEADER slide is a plain static title (text in both
   // display modes, no pointer). Kept minimal: only the new Pūrṇam / Samarpana
   // titles — existing section headers keep their current behavior.
