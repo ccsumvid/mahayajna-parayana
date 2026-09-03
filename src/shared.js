@@ -985,6 +985,14 @@ const renderer = (function() {
       const analyzeText = hasDevanagari ? line.text : (line.iast || line.text);
       const analyzer = hasDevanagari ? prosody : iastProsody;
 
+      // Version C hybrid (team 09-02): verse ślokas render like version A —
+      // even glide in asterisk mode, single-span sweep in English — everywhere
+      // EXCEPT Gita Sāram/Ārati (kept as-is) and the om-tatsaditi closers
+      // (mātrā stars). Section headers keep their C treatment above.
+      const vSection = dataLayer.getCurrentChapterId();
+      const effMode = (paceConfig.pacingMode === 'C' && !pageData.isCloser &&
+        vSection !== 'gita_saram' && vSection !== 'gita_arati') ? 'A' : paceConfig.pacingMode;
+
       if (currentMode === 'english') {
         // English mode: show IAST text.
         // perSyllableTiming ON (Case 2, team 07-30): one span PER SYLLABLE of
@@ -1001,7 +1009,7 @@ const renderer = (function() {
         // (index.html), and fixes the "Dhyana line mixups" (feedback #10–19)
         // that came from breaking a pāda at the wrong mid-pāda point.
         const displayText = line.iast || line.text;
-        if (paceConfig.pacingMode !== 'A') {
+        if (effMode !== 'A') {
           const eAnalyzer = /[\u0900-\u097F]/.test(displayText) ? prosody : iastProsody;
           const eTokens = eAnalyzer.analyzeLine(displayText);
           for (let ei = 0; ei < eTokens.length; ei++) {
@@ -1076,11 +1084,11 @@ const renderer = (function() {
 
           // By pacing version (line totals identical in all): A = average glide,
           // B = own guru/laghu weight, C = one star per mātrā (constant motion).
-          const starCount = paceConfig.pacingMode === 'C' ? Math.max(1, Math.round(token.beats)) : 1;
+          const starCount = effMode === 'C' ? Math.max(1, Math.round(token.beats)) : 1;
           for (let mi = 0; mi < starCount; mi++) {
             const span = document.createElement('span');
-            span.dataset.beats = paceConfig.pacingMode === 'C' ? 1
-              : (paceConfig.pacingMode === 'B' ? token.beats : avgBeats);
+            span.dataset.beats = effMode === 'C' ? 1
+              : (effMode === 'B' ? token.beats : avgBeats);
             span.className = 'syllable';
             span.dataset.index = elements.length;
             span.textContent = '\u2731';
